@@ -31,19 +31,19 @@ export function FuelLogCreate({ onBack }: Props) {
   const [pricePerLiter, setPricePerLiter] = useState("");
   const [totalPrice, setTotalPrice] = useState("");
   const [fuelLevel, setFuelLevel] = useState(100);
-  const [isTotalManual, setIsTotalManual] = useState(false);
+  const [isLitersManual, setIsLitersManual] = useState(false);
 
-  // liters × pricePerLiter 자동 계산
+  // totalPrice / pricePerLiter → liters 자동 계산
   useEffect(() => {
-    if (isTotalManual) return;
-    const l = parseFloat(liters);
+    if (isLitersManual) return;
     const p = parseFloat(pricePerLiter.replace(/,/g, ""));
-    if (!isNaN(l) && !isNaN(p) && l > 0 && p > 0) {
-      setTotalPrice(Math.round(l * p).toLocaleString());
+    const t = parseFloat(totalPrice.replace(/,/g, ""));
+    if (!isNaN(p) && !isNaN(t) && p > 0 && t > 0) {
+      setLiters((t / p).toFixed(2));
     } else {
-      setTotalPrice("");
+      setLiters("");
     }
-  }, [liters, pricePerLiter, isTotalManual]);
+  }, [pricePerLiter, totalPrice, isLitersManual]);
 
   const isValid = Boolean(
     date && location && liters && pricePerLiter && totalPrice && odometer,
@@ -161,16 +161,27 @@ export function FuelLogCreate({ onBack }: Props) {
           />
 
           {/* 주유량 */}
-          <TextField
+          <TextField.Clearable
             variant="line"
             label="주유량"
             labelOption="sustain"
             placeholder="0.00"
             suffix="L"
             value={liters}
+            help={"리터당 금액과 총 금액으로 자동 계산해요"}
             onChange={(e) => {
               const raw = e.target.value.replace(/[^0-9.]/g, "");
-              setLiters(raw);
+              if (!raw) {
+                setLiters("");
+                setIsLitersManual(false);
+              } else {
+                setLiters(raw);
+                setIsLitersManual(true);
+              }
+            }}
+            onClear={() => {
+              setLiters("");
+              setIsLitersManual(false);
             }}
             required={false}
           />
@@ -189,33 +200,17 @@ export function FuelLogCreate({ onBack }: Props) {
               setPricePerLiter("");
             }}
           />
-          {/* 총 금액 (자동 계산) */}
+          {/* 총 주유 금액 */}
           <TextField.Clearable
             variant="line"
             label="총 주유 금액"
             labelOption="sustain"
-            placeholder="주유량 × 리터당 금액으로 자동 계산"
+            placeholder="0"
             suffix="원"
             value={totalPrice}
-            help={
-              isTotalManual
-                ? "직접 입력 중이에요. 비우면 자동 계산으로 돌아가요."
-                : undefined
-            }
-            onChange={(e) => {
-              const raw = e.target.value.replace(/[^0-9]/g, "");
-              if (!raw) {
-                setIsTotalManual(false);
-                setTotalPrice("");
-              } else {
-                setIsTotalManual(true);
-                setTotalPrice(Number(raw).toLocaleString());
-              }
-            }}
+            onChange={(e) => setTotalPrice(toNumberString(e.target.value))}
             required
-            onClear={() => {
-              setPricePerLiter("");
-            }}
+            onClear={() => setTotalPrice("")}
           />
         </div>
 
