@@ -232,8 +232,8 @@ export function FuelLogList({ onNavigate }: Props) {
             contents={
               <ListRow.Texts
                 type="2RowTypeA"
-                top={log.location}
-                bottom={`${log.liters}L · 연료 ${log.fuelLevel}% · ${log.odometer.toLocaleString()}km`}
+                top={`${log.liters}L`}
+                bottom={`${log.location} · 연료 ${log.fuelLevel}% · ${log.odometer.toLocaleString()}km`}
               />
             }
             right={
@@ -268,7 +268,9 @@ export function FuelLogList({ onNavigate }: Props) {
           zIndex: 100,
         }}
       >
-        <span style={{ color: "white", fontSize: 32, lineHeight: 1, marginTop: -2 }}>
+        <span
+          style={{ color: "white", fontSize: 32, lineHeight: 1, marginTop: -2 }}
+        >
           +
         </span>
       </button>
