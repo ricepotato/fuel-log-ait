@@ -133,6 +133,7 @@ export function FuelLogCreate({ onBack }: Props) {
             onChange={(e) => setDate(e.target.value)}
             style={{ width: "100%" }}
             right={<DatepickerButton value={date} onChange={setDate} />}
+            required
           />
 
           {/* 주유소 */}
@@ -144,6 +145,7 @@ export function FuelLogCreate({ onBack }: Props) {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onClear={() => setLocation("")}
+            required={false}
           />
 
           {/* 누적 주행거리 */}
@@ -155,6 +157,7 @@ export function FuelLogCreate({ onBack }: Props) {
             suffix="km"
             value={odometer}
             onChange={(e) => setOdometer(toNumberString(e.target.value))}
+            required={false}
           />
 
           {/* 주유량 */}
@@ -169,10 +172,11 @@ export function FuelLogCreate({ onBack }: Props) {
               const raw = e.target.value.replace(/[^0-9.]/g, "");
               setLiters(raw);
             }}
+            required={false}
           />
 
           {/* 리터당 금액 */}
-          <TextField
+          <TextField.Clearable
             variant="line"
             label="리터당 금액"
             labelOption="sustain"
@@ -180,10 +184,13 @@ export function FuelLogCreate({ onBack }: Props) {
             suffix="원/L"
             value={pricePerLiter}
             onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
+            required={false}
+            onClear={() => {
+              setPricePerLiter("");
+            }}
           />
-
           {/* 총 금액 (자동 계산) */}
-          <TextField
+          <TextField.Clearable
             variant="line"
             label="총 주유 금액"
             labelOption="sustain"
@@ -204,6 +211,10 @@ export function FuelLogCreate({ onBack }: Props) {
                 setIsTotalManual(true);
                 setTotalPrice(Number(raw).toLocaleString());
               }
+            }}
+            required
+            onClear={() => {
+              setPricePerLiter("");
             }}
           />
         </div>
@@ -279,4 +290,3 @@ export function FuelLogCreate({ onBack }: Props) {
     </main>
   );
 }
-
