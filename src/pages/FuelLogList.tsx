@@ -4,6 +4,7 @@ import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
   onNavigate: (page: string) => void;
+  onEdit: (log: FuelLog) => void;
 }
 
 const sampleFuelLogs: FuelLog[] = [
@@ -111,7 +112,7 @@ const sampleFuelLogs: FuelLog[] = [
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
-export function FuelLogList({ onNavigate }: Props) {
+export function FuelLogList({ onNavigate, onEdit }: Props) {
   const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(5); // 0-indexed, 5 = 6월
   const selectedMonth = MONTHS[selectedMonthIndex];
@@ -223,6 +224,7 @@ export function FuelLogList({ onNavigate }: Props) {
         return (
           <ListRow
             key={log.id}
+            onClick={() => onEdit(log)}
             border={index === 0 ? "none" : "indented"}
             left={
               <ListRow.AssetText shape="squircle" size="medium">

@@ -1,10 +1,12 @@
 import { Button, Slider, TextField } from "@toss/tds-mobile";
 import { useEffect, useState } from "react";
 import { DatepickerButton } from "../components/DatepickerButton";
+import { addFuelLog, updateFuelLog } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
   onBack: () => void;
+  initialData?: FuelLog;
 }
 
 const FUEL_LEVEL_PRESETS = [
@@ -20,18 +22,25 @@ function toNumberString(raw: string): string {
   return digits ? Number(digits).toLocaleString() : "";
 }
 
-export function FuelLogCreate({ onBack }: Props) {
+export function FuelLogForm({ onBack, initialData }: Props) {
   const today = new Date().toISOString().split("T")[0];
 
-  const [date, setDate] = useState(today);
-
-  const [location, setLocation] = useState("");
-  const [odometer, setOdometer] = useState("");
-  const [liters, setLiters] = useState("");
-  const [pricePerLiter, setPricePerLiter] = useState("");
-  const [totalPrice, setTotalPrice] = useState("");
-  const [fuelLevel, setFuelLevel] = useState(100);
-  const [isLitersManual, setIsLitersManual] = useState(false);
+  const [date, setDate] = useState(initialData?.date ?? today);
+  const [location, setLocation] = useState(initialData?.location ?? "");
+  const [odometer, setOdometer] = useState(
+    initialData ? initialData.odometer.toLocaleString() : "",
+  );
+  const [liters, setLiters] = useState(
+    initialData ? initialData.liters.toString() : "",
+  );
+  const [pricePerLiter, setPricePerLiter] = useState(
+    initialData ? initialData.pricePerLiter.toLocaleString() : "",
+  );
+  const [totalPrice, setTotalPrice] = useState(
+    initialData ? initialData.totalPrice.toLocaleString() : "",
+  );
+  const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 100);
+  const [isLitersManual, setIsLitersManual] = useState(!!initialData);
 
   // totalPrice / pricePerLiter → liters 자동 계산
   useEffect(() => {
@@ -49,9 +58,9 @@ export function FuelLogCreate({ onBack }: Props) {
     date && location && liters && pricePerLiter && totalPrice && odometer,
   );
 
-  const handleSave = () => {
-    const newLog: FuelLog = {
-      id: Date.now().toString(),
+  const handleSave = async () => {
+    const log: FuelLog = {
+      id: initialData?.id ?? Date.now().toString(),
       date,
       location,
       liters: parseFloat(liters),
@@ -60,7 +69,11 @@ export function FuelLogCreate({ onBack }: Props) {
       odometer: parseInt(odometer.replace(/,/g, "")),
       fuelLevel,
     };
-    console.log("새 주유 기록 저장:", newLog);
+    if (initialData) {
+      await updateFuelLog(log);
+    } else {
+      await addFuelLog(log);
+    }
     onBack();
   };
 
@@ -110,7 +123,7 @@ export function FuelLogCreate({ onBack }: Props) {
             marginRight: 44,
           }}
         >
-          주유 기록 추가
+          {initialData ? "주유 기록 수정" : "주유 기록 추가"}
         </span>
       </div>
       <div
@@ -196,10 +209,9 @@ export function FuelLogCreate({ onBack }: Props) {
             value={pricePerLiter}
             onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
             required={false}
-            onClear={() => {
-              setPricePerLiter("");
-            }}
+            onClear={() => setPricePerLiter("")}
           />
+
           {/* 총 주유 금액 */}
           <TextField.Clearable
             variant="line"

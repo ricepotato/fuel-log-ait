@@ -3,14 +3,36 @@ import "./App.css";
 import { InAppPurchasePage } from "./pages/InAppPurchasePage";
 import { InAppAdsPage } from "./pages/InAppAdsPage";
 import { FuelLogList } from "./pages/FuelLogList";
-import { FuelLogCreate } from "./pages/FuelLogCreate";
+import { FuelLogForm } from "./pages/FuelLogForm";
 import { useState } from "react";
+import type { FuelLog } from "./types/fuelLog";
 
 function App() {
   const [page, setPage] = useState<string | null>("fuel");
+  const [editingLog, setEditingLog] = useState<FuelLog | null>(null);
 
-  if (page === "fuel") return <FuelLogList onNavigate={setPage} />;
-  if (page === "fuel-create") return <FuelLogCreate onBack={() => setPage("fuel")} />;
+  if (page === "fuel")
+    return (
+      <FuelLogList
+        onNavigate={setPage}
+        onEdit={(log) => {
+          setEditingLog(log);
+          setPage("fuel-edit");
+        }}
+      />
+    );
+  if (page === "fuel-create")
+    return <FuelLogForm onBack={() => setPage("fuel")} />;
+  if (page === "fuel-edit" && editingLog)
+    return (
+      <FuelLogForm
+        initialData={editingLog}
+        onBack={() => {
+          setEditingLog(null);
+          setPage("fuel");
+        }}
+      />
+    );
   if (page === "iap") return <InAppPurchasePage onBack={() => setPage(null)} />;
   if (page === "iaa") return <InAppAdsPage onBack={() => setPage(null)} />;
 
