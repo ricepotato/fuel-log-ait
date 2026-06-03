@@ -1,9 +1,9 @@
 import { Button, Slider, TextField, Toast, Top } from "@toss/tds-mobile";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import { useToast } from "../hooks/useToast";
-import { addFuelLog, updateFuelLog } from "../repository";
+import { addFuelLog, getFuelLogs, updateFuelLog } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
@@ -40,6 +40,37 @@ export function FuelLogForm({ initialData }: Props) {
     initialData ? initialData.totalPrice.toLocaleString() : "",
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
+
+  const [frequentTotalPrices, setFrequentTotalPrices] = useState<number[]>([]);
+  const [showTotalPricePopover, setShowTotalPricePopover] = useState(false);
+  const totalPriceFieldRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    getFuelLogs().then((logs) => {
+      const freq = new Map<number, number>();
+      for (const log of logs) {
+        if (log.totalPrice > 0) {
+          freq.set(log.totalPrice, (freq.get(log.totalPrice) ?? 0) + 1);
+        }
+      }
+      const top = [...freq.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([price]) => price);
+      setFrequentTotalPrices(top);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showTotalPricePopover) return;
+    const handle = (e: MouseEvent) => {
+      if (!totalPriceFieldRef.current?.contains(e.target as Node)) {
+        setShowTotalPricePopover(false);
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [showTotalPricePopover]);
 
   const p = parseFloat(pricePerLiter.replace(/,/g, ""));
   const t = parseFloat(totalPrice.replace(/,/g, ""));
@@ -155,17 +186,62 @@ export function FuelLogForm({ initialData }: Props) {
           />
 
           {/* 총 주유 금액 */}
-          <TextField.Clearable
-            variant="line"
-            label="총 주유 금액"
-            labelOption="sustain"
-            placeholder="0"
-            suffix="원"
-            value={totalPrice}
-            onChange={(e) => setTotalPrice(toNumberString(e.target.value))}
-            required
-            onClear={() => setTotalPrice("")}
-          />
+          <div ref={totalPriceFieldRef} style={{ position: "relative" }}>
+            <TextField.Clearable
+              variant="line"
+              label="총 주유 금액"
+              labelOption="sustain"
+              placeholder="0"
+              suffix="원"
+              value={totalPrice}
+              onChange={(e) => setTotalPrice(toNumberString(e.target.value))}
+              required
+              onClear={() => setTotalPrice("")}
+              onFocus={() => {
+                if (frequentTotalPrices.length > 0) setShowTotalPricePopover(true);
+              }}
+            />
+            {showTotalPricePopover && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  backgroundColor: "white",
+                  borderRadius: 12,
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.12)",
+                  zIndex: 200,
+                  overflow: "hidden",
+                }}
+              >
+                {frequentTotalPrices.map((price, i) => (
+                  <button
+                    key={price}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setTotalPrice(price.toLocaleString());
+                      setShowTotalPricePopover(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      width: "100%",
+                      padding: "14px 20px",
+                      background: "none",
+                      border: "none",
+                      borderTop: i === 0 ? "none" : "1px solid #F2F4F6",
+                      textAlign: "left",
+                      fontSize: 15,
+                      color: "#191F28",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {price.toLocaleString()}원
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 주유량 */}
