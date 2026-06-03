@@ -1,21 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ListRow, Tab } from "@toss/tds-mobile";
 import type { FuelLog } from "../types/fuelLog";
 import { getFuelLogs } from "../repository";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
-export function FuelLogList({
-  selectedYear,
-  onYearChange,
-  selectedMonthIndex,
-  onMonthChange,
-}: {
-  selectedYear: number;
-  onYearChange: (year: number) => void;
-  selectedMonthIndex: number;
-  onMonthChange: (monthIndex: number) => void;
-}) {
+export function FuelLogList() {
+  const navigate = useNavigate();
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(
+    new Date().getMonth(),
+  );
   const [logs, setLogs] = useState<FuelLog[]>([]);
 
   useEffect(() => {
@@ -49,7 +45,7 @@ export function FuelLogList({
         }}
       >
         <button
-          onClick={() => onYearChange(selectedYear - 1)}
+          onClick={() => setSelectedYear(selectedYear - 1)}
           style={{
             background: "none",
             border: "none",
@@ -66,7 +62,7 @@ export function FuelLogList({
           {selectedYear}년
         </span>
         <button
-          onClick={() => onYearChange(selectedYear + 1)}
+          onClick={() => setSelectedYear(selectedYear + 1)}
           style={{
             background: "none",
             border: "none",
@@ -82,7 +78,7 @@ export function FuelLogList({
       </div>
 
       {/* Month tabs */}
-      <Tab fluid onChange={(index) => onMonthChange(index)}>
+      <Tab fluid onChange={(index) => setSelectedMonthIndex(index)}>
         {MONTHS.map((m, i) => (
           <Tab.Item key={m} selected={selectedMonthIndex === i}>
             {m}월
@@ -154,7 +150,7 @@ export function FuelLogList({
       {/* Floating Action Button */}
       <button
         aria-label="새 주유 기록 추가"
-        onClick={() => {}}
+        onClick={() => navigate("/add")}
         style={{
           position: "fixed",
           bottom: 32,

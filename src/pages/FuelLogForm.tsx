@@ -1,11 +1,11 @@
-import { Button, Slider, TextField } from "@toss/tds-mobile";
+import { Button, Slider, TextField, Top } from "@toss/tds-mobile";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import { addFuelLog, updateFuelLog } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
-  onBack: () => void;
   initialData?: FuelLog;
 }
 
@@ -22,7 +22,8 @@ function toNumberString(raw: string): string {
   return digits ? Number(digits).toLocaleString() : "";
 }
 
-export function FuelLogForm({ onBack, initialData }: Props) {
+export function FuelLogForm({ initialData }: Props) {
+  const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
 
   const [date, setDate] = useState(initialData?.date ?? today);
@@ -74,7 +75,7 @@ export function FuelLogForm({ onBack, initialData }: Props) {
     } else {
       await addFuelLog(log);
     }
-    onBack();
+    navigate(-1);
   };
 
   return (
@@ -82,50 +83,19 @@ export function FuelLogForm({ onBack, initialData }: Props) {
       style={{
         minHeight: "100vh",
         backgroundColor: "white",
+        padding: "24px 0px",
       }}
     >
       {/* 헤더 */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          height: 56,
-          padding: "0 8px",
-          borderBottom: "1px solid #E5E8EB",
-          position: "sticky",
-          top: 0,
-          backgroundColor: "white",
-          zIndex: 10,
-        }}
-      >
-        <button
-          onClick={onBack}
-          aria-label="뒤로가기"
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "8px 12px",
-            fontSize: 24,
-            color: "#191F28",
-            lineHeight: 1,
-          }}
-        >
-          ‹
-        </button>
-        <span
-          style={{
-            flex: 1,
-            textAlign: "center",
-            fontSize: 17,
-            fontWeight: 600,
-            color: "#191F28",
-            marginRight: 44,
-          }}
-        >
-          {initialData ? "주유 기록 수정" : "주유 기록 추가"}
-        </span>
-      </div>
+      <Top
+        upperGap={0}
+        lowerGap={0}
+        title={
+          <Top.TitleParagraph size={28}>
+            {initialData ? "주유 기록 수정" : "주유 기록 추가"}
+          </Top.TitleParagraph>
+        }
+      />
       <div
         style={{
           display: "flex",
