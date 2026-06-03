@@ -281,8 +281,18 @@ export function FuelLogCreate({ onBack }: Props) {
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MONTHS_KO = [
-  "1월", "2월", "3월", "4월", "5월", "6월",
-  "7월", "8월", "9월", "10월", "11월", "12월",
+  "1월",
+  "2월",
+  "3월",
+  "4월",
+  "5월",
+  "6월",
+  "7월",
+  "8월",
+  "9월",
+  "10월",
+  "11월",
+  "12월",
 ];
 
 interface DatepickerButtonProps {
@@ -313,12 +323,16 @@ function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
   const todayStr = new Date().toISOString().split("T")[0];
 
   const handlePrevMonth = () => {
-    if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
-    else setViewMonth((m) => m - 1);
+    if (viewMonth === 0) {
+      setViewYear((y) => y - 1);
+      setViewMonth(11);
+    } else setViewMonth((m) => m - 1);
   };
   const handleNextMonth = () => {
-    if (viewMonth === 11) { setViewYear((y) => y + 1); setViewMonth(0); }
-    else setViewMonth((m) => m + 1);
+    if (viewMonth === 11) {
+      setViewYear((y) => y + 1);
+      setViewMonth(0);
+    } else setViewMonth((m) => m + 1);
   };
 
   const handleSelectDay = (day: number) => {
@@ -375,7 +389,7 @@ function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
             >
               ‹
             </button>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#191F28" }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "#191F28" }}>
               {viewYear}년 {MONTHS_KO[viewMonth]}
             </span>
             <button
@@ -388,13 +402,19 @@ function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
           </div>
 
           {/* 요일 헤더 */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 8 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              marginBottom: 8,
+            }}
+          >
             {WEEKDAYS.map((wd, i) => (
               <div
                 key={wd}
                 style={{
                   textAlign: "center",
-                  fontSize: 12,
+                  fontSize: 20,
                   fontWeight: 600,
                   color: i === 0 ? "#F04452" : i === 6 ? "#3182F6" : "#8B95A1",
                   paddingBottom: 4,
@@ -406,7 +426,13 @@ function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
           </div>
 
           {/* 날짜 그리드 */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: 2,
+            }}
+          >
             {cells.map((day, i) => {
               if (!day) return <div key={i} />;
 
@@ -425,7 +451,8 @@ function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
                     width: "100%",
                     aspectRatio: "1",
                     borderRadius: "50%",
-                    border: isToday && !isSelected ? "1.5px solid #3182F6" : "none",
+                    border:
+                      isToday && !isSelected ? "1.5px solid #3182F6" : "none",
                     backgroundColor: isSelected ? "#3182F6" : "transparent",
                     color: isSelected
                       ? "white"
@@ -434,7 +461,7 @@ function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
                         : col === 6
                           ? "#3182F6"
                           : "#191F28",
-                    fontSize: 14,
+                    fontSize: 18,
                     fontWeight: isSelected || isToday ? 700 : 400,
                     cursor: "pointer",
                   }}
