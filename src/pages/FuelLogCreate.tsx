@@ -23,16 +23,7 @@ export function FuelLogCreate({ onBack }: Props) {
   const today = new Date().toISOString().split("T")[0];
 
   const [date, setDate] = useState(today);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
-  const openDatePicker = () => {
-    if (!dateInputRef.current) return;
-    try {
-      dateInputRef.current.showPicker();
-    } catch {
-      dateInputRef.current.click();
-    }
-  };
   const [location, setLocation] = useState("");
   const [odometer, setOdometer] = useState("");
   const [liters, setLiters] = useState("");
@@ -77,7 +68,6 @@ export function FuelLogCreate({ onBack }: Props) {
       style={{
         minHeight: "100vh",
         backgroundColor: "white",
-        paddingBottom: 100,
       }}
     >
       {/* 헤더 */}
@@ -122,163 +112,167 @@ export function FuelLogCreate({ onBack }: Props) {
           주유 기록 추가
         </span>
       </div>
-
-      {/* 폼 */}
-      <div style={{ padding: "8px 24px 0" }}>
-        {/* 날짜 */}
-        <TextField
-          variant="line"
-          label="날짜"
-          labelOption="sustain"
-          placeholder="YYYY-MM-DD"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-
-        {/* 주유소 */}
-        <TextField.Clearable
-          variant="line"
-          label="주유소"
-          labelOption="sustain"
-          placeholder="주유소 이름 입력"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          onClear={() => setLocation("")}
-        />
-
-        {/* 누적 주행거리 */}
-        <TextField
-          variant="line"
-          label="누적 주행거리"
-          labelOption="sustain"
-          placeholder="0"
-          suffix="km"
-          value={odometer}
-          onChange={(e) => setOdometer(toNumberString(e.target.value))}
-        />
-
-        {/* 주유량 */}
-        <TextField
-          variant="line"
-          label="주유량"
-          labelOption="sustain"
-          placeholder="0.00"
-          suffix="L"
-          value={liters}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^0-9.]/g, "");
-            setLiters(raw);
-          }}
-        />
-
-        {/* 리터당 금액 */}
-        <TextField
-          variant="line"
-          label="리터당 금액"
-          labelOption="sustain"
-          placeholder="0"
-          suffix="원/L"
-          value={pricePerLiter}
-          onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
-        />
-
-        {/* 총 금액 (자동 계산) */}
-        <TextField
-          variant="line"
-          label="총 주유 금액"
-          labelOption="sustain"
-          placeholder="주유량 × 리터당 금액으로 자동 계산"
-          suffix="원"
-          value={totalPrice}
-          help={
-            isTotalManual
-              ? "직접 입력 중이에요. 비우면 자동 계산으로 돌아가요."
-              : undefined
-          }
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^0-9]/g, "");
-            if (!raw) {
-              setIsTotalManual(false);
-              setTotalPrice("");
-            } else {
-              setIsTotalManual(true);
-              setTotalPrice(Number(raw).toLocaleString());
-            }
-          }}
-        />
-      </div>
-
-      {/* 연료 잔량 */}
-      <div style={{ padding: "28px 24px 16px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <span style={{ fontSize: 15, color: "#4E5968" }}>
-            주유 후 연료 잔량
-          </span>
-          <span style={{ fontSize: 16, fontWeight: 700, color: "#3182F6" }}>
-            {fuelLevel === 0
-              ? "Empty"
-              : fuelLevel === 100
-                ? "Full (가득)"
-                : `${fuelLevel}%`}
-          </span>
-        </div>
-
-        {/* 프리셋 버튼 */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-          {FUEL_LEVEL_PRESETS.map((preset) => (
-            <button
-              key={preset.value}
-              onClick={() => setFuelLevel(preset.value)}
-              style={{
-                flex: 1,
-                height: 36,
-                borderRadius: 8,
-                border: `1.5px solid ${fuelLevel === preset.value ? "#3182F6" : "#E5E8EB"}`,
-                backgroundColor:
-                  fuelLevel === preset.value ? "#EBF3FF" : "white",
-                color: fuelLevel === preset.value ? "#3182F6" : "#4E5968",
-                fontSize: 13,
-                fontWeight: fuelLevel === preset.value ? 700 : 400,
-                cursor: "pointer",
-              }}
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 슬라이더 */}
-        <Slider
-          value={fuelLevel}
-          minValue={0}
-          maxValue={100}
-          onValueChange={(v) => setFuelLevel(Math.round(v))}
-          label={{ min: "E", max: "F" }}
-        />
-      </div>
-
-      {/* 저장 버튼 */}
       <div
         style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: "16px 20px 32px",
-          backgroundColor: "white",
-          borderTop: "1px solid #F2F4F6",
+          display: "flex",
+          flexDirection: "column",
+          gap: 24,
+          padding: "8px 24px 0",
         }}
       >
-        <Button display="full" disabled={!isValid} onClick={handleSave}>
-          저장하기
-        </Button>
+        {/* 폼 */}
+        <div>
+          {/* 날짜 */}
+          <TextField
+            variant="line"
+            label="날짜"
+            labelOption="sustain"
+            placeholder="YYYY-MM-DD"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            style={{ width: "100%" }}
+          />
+
+          {/* 주유소 */}
+          <TextField.Clearable
+            variant="line"
+            label="주유소"
+            labelOption="sustain"
+            placeholder="주유소 이름 입력"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            onClear={() => setLocation("")}
+          />
+
+          {/* 누적 주행거리 */}
+          <TextField
+            variant="line"
+            label="누적 주행거리"
+            labelOption="sustain"
+            placeholder="0"
+            suffix="km"
+            value={odometer}
+            onChange={(e) => setOdometer(toNumberString(e.target.value))}
+          />
+
+          {/* 주유량 */}
+          <TextField
+            variant="line"
+            label="주유량"
+            labelOption="sustain"
+            placeholder="0.00"
+            suffix="L"
+            value={liters}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/[^0-9.]/g, "");
+              setLiters(raw);
+            }}
+          />
+
+          {/* 리터당 금액 */}
+          <TextField
+            variant="line"
+            label="리터당 금액"
+            labelOption="sustain"
+            placeholder="0"
+            suffix="원/L"
+            value={pricePerLiter}
+            onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
+          />
+
+          {/* 총 금액 (자동 계산) */}
+          <TextField
+            variant="line"
+            label="총 주유 금액"
+            labelOption="sustain"
+            placeholder="주유량 × 리터당 금액으로 자동 계산"
+            suffix="원"
+            value={totalPrice}
+            help={
+              isTotalManual
+                ? "직접 입력 중이에요. 비우면 자동 계산으로 돌아가요."
+                : undefined
+            }
+            onChange={(e) => {
+              const raw = e.target.value.replace(/[^0-9]/g, "");
+              if (!raw) {
+                setIsTotalManual(false);
+                setTotalPrice("");
+              } else {
+                setIsTotalManual(true);
+                setTotalPrice(Number(raw).toLocaleString());
+              }
+            }}
+          />
+        </div>
+
+        {/* 연료 잔량 */}
+        <div style={{ padding: "0 24px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
+            }}
+          >
+            <span style={{ fontSize: 15, color: "#4E5968" }}>
+              주유 후 연료 잔량
+            </span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#3182F6" }}>
+              {fuelLevel === 0
+                ? "Empty"
+                : fuelLevel === 100
+                  ? "Full (가득)"
+                  : `${fuelLevel}%`}
+            </span>
+          </div>
+
+          {/* 프리셋 버튼 */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            {FUEL_LEVEL_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                onClick={() => setFuelLevel(preset.value)}
+                style={{
+                  flex: 1,
+                  height: 36,
+                  borderRadius: 8,
+                  border: `1.5px solid ${fuelLevel === preset.value ? "#3182F6" : "#E5E8EB"}`,
+                  backgroundColor:
+                    fuelLevel === preset.value ? "#EBF3FF" : "white",
+                  color: fuelLevel === preset.value ? "#3182F6" : "#4E5968",
+                  fontSize: 13,
+                  fontWeight: fuelLevel === preset.value ? 700 : 400,
+                  cursor: "pointer",
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 슬라이더 */}
+          <Slider
+            value={fuelLevel}
+            minValue={0}
+            maxValue={100}
+            onValueChange={(v) => setFuelLevel(Math.round(v))}
+            label={{ min: "E", max: "F" }}
+          />
+        </div>
+        <div style={{ padding: "0 24px 48px 24px" }}>
+          <Button
+            disabled={!isValid}
+            onClick={handleSave}
+            color="primary"
+            variant="fill"
+            type="submit"
+            style={{ width: "100%" }}
+          >
+            저장하기
+          </Button>
+        </div>
       </div>
     </main>
   );
