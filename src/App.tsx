@@ -3,12 +3,14 @@ import "./App.css";
 import { InAppPurchasePage } from "./pages/InAppPurchasePage";
 import { InAppAdsPage } from "./pages/InAppAdsPage";
 import { FuelLogList } from "./pages/FuelLogList";
+import { FuelLogCreate } from "./pages/FuelLogCreate";
 import { useState } from "react";
 
 function App() {
   const [page, setPage] = useState<string | null>("fuel");
 
-  if (page === "fuel") return <FuelLogList />;
+  if (page === "fuel") return <FuelLogList onNavigate={setPage} />;
+  if (page === "fuel-create") return <FuelLogCreate onBack={() => setPage("fuel")} />;
   if (page === "iap") return <InAppPurchasePage onBack={() => setPage(null)} />;
   if (page === "iaa") return <InAppAdsPage onBack={() => setPage(null)} />;
 

@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { ListRow, Tab, Top } from "@toss/tds-mobile";
+import type { FuelLog } from "../types/fuelLog";
 
-interface FuelLog {
-  id: string;
-  date: string; // ISO 8601 형식 (예: "2026-06-03")
-  location: string; // 주유 장소명
-  liters: number; // 주유량 (리터)
-  pricePerLiter: number; // 리터당 금액 (원)
-  totalPrice: number; // 총 주유 금액 (원)
-  odometer: number; // 누적 주행거리 (km)
-  fuelLevel: number; // 주유한 양 (0~100, 100=가득, 50=절반)
+interface Props {
+  onNavigate: (page: string) => void;
 }
 
 const sampleFuelLogs: FuelLog[] = [
@@ -117,7 +111,7 @@ const sampleFuelLogs: FuelLog[] = [
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
-export function FuelLogList() {
+export function FuelLogList({ onNavigate }: Props) {
   const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(5); // 0-indexed, 5 = 6월
   const selectedMonth = MONTHS[selectedMonthIndex];
@@ -252,6 +246,32 @@ export function FuelLogList() {
           />
         );
       })}
+
+      {/* Floating Action Button */}
+      <button
+        aria-label="새 주유 기록 추가"
+        onClick={() => onNavigate("fuel-create")}
+        style={{
+          position: "fixed",
+          bottom: 32,
+          right: 24,
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          backgroundColor: "#3182F6",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 16px rgba(49, 130, 246, 0.45)",
+          zIndex: 100,
+        }}
+      >
+        <span style={{ color: "white", fontSize: 32, lineHeight: 1, marginTop: -2 }}>
+          +
+        </span>
+      </button>
     </main>
   );
 }
