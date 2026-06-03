@@ -11,11 +11,11 @@ interface Props {
 }
 
 const FUEL_LEVEL_PRESETS = [
-  { label: "E", value: 0 },
+  { label: "입력안함", value: 0 },
   { label: "1/4", value: 25 },
   { label: "1/2", value: 50 },
   { label: "3/4", value: 75 },
-  { label: "F", value: 100 },
+  { label: "가득", value: 100 },
 ];
 
 function toNumberString(raw: string): string {
@@ -39,7 +39,7 @@ export function FuelLogForm({ initialData }: Props) {
   const [totalPrice, setTotalPrice] = useState(
     initialData ? initialData.totalPrice.toLocaleString() : "",
   );
-  const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 100);
+  const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 
   const p = parseFloat(pricePerLiter.replace(/,/g, ""));
   const t = parseFloat(totalPrice.replace(/,/g, ""));
@@ -202,9 +202,9 @@ export function FuelLogForm({ initialData }: Props) {
             </span>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#3182F6" }}>
               {fuelLevel === 0
-                ? "Empty"
+                ? "입력안함"
                 : fuelLevel === 100
-                  ? "Full (가득)"
+                  ? "가득"
                   : `${fuelLevel}%`}
             </span>
           </div>
