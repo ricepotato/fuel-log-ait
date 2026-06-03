@@ -1,7 +1,8 @@
-import { Button, Slider, TextField, Top } from "@toss/tds-mobile";
+import { Button, Slider, TextField, Toast, Top } from "@toss/tds-mobile";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
+import { useToast } from "../hooks/useToast";
 import { addFuelLog, updateFuelLog } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 
@@ -24,6 +25,7 @@ function toNumberString(raw: string): string {
 
 export function FuelLogForm({ initialData }: Props) {
   const navigate = useNavigate();
+  const { show } = useToast();
   const today = new Date().toISOString().split("T")[0];
 
   const [date, setDate] = useState(initialData?.date ?? today);
@@ -75,6 +77,11 @@ export function FuelLogForm({ initialData }: Props) {
     } else {
       await addFuelLog(log);
     }
+    show({
+      text: "주유 기록이 저장됐어요",
+      leftAddon: <Toast.Icon name="icn-success-color" />,
+      duration: 2000,
+    });
     navigate(-1);
   };
 
