@@ -47,7 +47,7 @@ export function FuelLogForm({ initialData }: Props) {
     p > 0 && t > 0 && !isNaN(p) && !isNaN(t) ? (t / p).toFixed(2) : "";
 
   const isValid = Boolean(
-    date && location && liters && pricePerLiter && totalPrice && odometer,
+    date && liters && pricePerLiter && totalPrice && odometer,
   );
 
   const handleSave = async () => {
@@ -98,7 +98,7 @@ export function FuelLogForm({ initialData }: Props) {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: 24,
           padding: "0px 0px",
         }}
       >
@@ -176,7 +176,7 @@ export function FuelLogForm({ initialData }: Props) {
           <div
             style={{
               fontSize: 20,
-              color: liters ? "#191F28" : "#B0B8C1",
+              color: liters ? "#3182F6" : "#B0B8C1",
               fontWeight: 600,
             }}
           >
@@ -188,7 +188,7 @@ export function FuelLogForm({ initialData }: Props) {
         </div>
 
         {/* 연료 잔량 */}
-        <div style={{ padding: "0 24px" }}>
+        <div style={{ marginTop: "20px", padding: "0 24px" }}>
           <div
             style={{
               display: "flex",

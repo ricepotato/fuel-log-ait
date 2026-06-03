@@ -133,7 +133,7 @@ export function FuelLogList() {
               <ListRow.Texts
                 type="2RowTypeA"
                 top={`${log.liters}L`}
-                bottom={`${log.location} · 연료 ${log.fuelLevel}% · ${log.odometer.toLocaleString()}km`}
+                bottom={`${log.location} · ${log.odometer.toLocaleString()}km`}
               />
             }
             right={
