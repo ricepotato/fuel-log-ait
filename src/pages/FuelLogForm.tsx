@@ -98,7 +98,7 @@ export function FuelLogForm({ initialData }: Props) {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 24,
+          gap: 12,
           padding: "0px 0px",
         }}
       >
@@ -169,17 +169,23 @@ export function FuelLogForm({ initialData }: Props) {
         </div>
 
         {/* 주유량 */}
-        <TextField
-          variant="line"
-          label="주유량"
-          labelOption="sustain"
-          placeholder="0.00"
-          suffix="L"
-          value={liters}
-          help="리터당 금액과 총 금액으로 자동 계산해요"
-          required={false}
-          disabled
-        />
+        <div style={{ padding: "0 24px" }}>
+          <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
+            주유량
+          </div>
+          <div
+            style={{
+              fontSize: 20,
+              color: liters ? "#191F28" : "#B0B8C1",
+              fontWeight: 600,
+            }}
+          >
+            {liters ? `${liters} L` : "0.00 L"}
+          </div>
+          <div style={{ fontSize: 12, color: "#8B95A1", marginTop: 4 }}>
+            리터당 금액과 총 금액으로 자동 계산해요
+          </div>
+        </div>
 
         {/* 연료 잔량 */}
         <div style={{ padding: "0 24px" }}>
