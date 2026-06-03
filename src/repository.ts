@@ -21,6 +21,11 @@ export async function updateFuelLog(item: FuelLog): Promise<void> {
   await Storage.setItem(KEY, JSON.stringify(updated));
 }
 
+export async function getFuelLogById(id: string): Promise<FuelLog | undefined> {
+  const logs = await getFuelLogs();
+  return logs.find((log) => log.id === id);
+}
+
 export async function removeFuelLog(id: string): Promise<void> {
   const logs = await getFuelLogs();
   const filtered = logs.filter((log) => log.id !== id);

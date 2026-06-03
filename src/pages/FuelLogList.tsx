@@ -122,7 +122,7 @@ export function FuelLogList() {
         return (
           <ListRow
             key={log.id}
-            onClick={() => {}}
+            onClick={() => navigate(`/edit/${log.id}`)}
             border={index === 0 ? "none" : "indented"}
             left={
               <ListRow.AssetText shape="squircle" size="medium">
