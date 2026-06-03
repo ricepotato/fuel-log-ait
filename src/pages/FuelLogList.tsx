@@ -1,10 +1,13 @@
-import { useState } from "react";
 import { ListRow, Tab, Top } from "@toss/tds-mobile";
 import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
   onNavigate: (page: string) => void;
   onEdit: (log: FuelLog) => void;
+  selectedYear: number;
+  onYearChange: (year: number) => void;
+  selectedMonthIndex: number;
+  onMonthChange: (monthIndex: number) => void;
 }
 
 const sampleFuelLogs: FuelLog[] = [
@@ -112,9 +115,14 @@ const sampleFuelLogs: FuelLog[] = [
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
-export function FuelLogList({ onNavigate, onEdit }: Props) {
-  const [selectedYear, setSelectedYear] = useState(2026);
-  const [selectedMonthIndex, setSelectedMonthIndex] = useState(5); // 0-indexed, 5 = 6월
+export function FuelLogList({
+  onNavigate,
+  onEdit,
+  selectedYear,
+  onYearChange,
+  selectedMonthIndex,
+  onMonthChange,
+}: Props) {
   const selectedMonth = MONTHS[selectedMonthIndex];
 
   const filtered = sampleFuelLogs
@@ -131,11 +139,6 @@ export function FuelLogList({ onNavigate, onEdit }: Props) {
 
   return (
     <main>
-      <Top
-        title={<Top.TitleParagraph size={22}>주유 기록</Top.TitleParagraph>}
-        lowerGap={8}
-      />
-
       {/* Year selector */}
       <div
         style={{
@@ -143,11 +146,11 @@ export function FuelLogList({ onNavigate, onEdit }: Props) {
           alignItems: "center",
           justifyContent: "center",
           gap: 24,
-          padding: "0 0 12px",
+          padding: "24px 0 12px",
         }}
       >
         <button
-          onClick={() => setSelectedYear((y) => y - 1)}
+          onClick={() => onYearChange(selectedYear - 1)}
           style={{
             background: "none",
             border: "none",
@@ -164,7 +167,7 @@ export function FuelLogList({ onNavigate, onEdit }: Props) {
           {selectedYear}년
         </span>
         <button
-          onClick={() => setSelectedYear((y) => y + 1)}
+          onClick={() => onYearChange(selectedYear + 1)}
           style={{
             background: "none",
             border: "none",
@@ -180,7 +183,7 @@ export function FuelLogList({ onNavigate, onEdit }: Props) {
       </div>
 
       {/* Month tabs */}
-      <Tab fluid onChange={(index) => setSelectedMonthIndex(index)}>
+      <Tab fluid onChange={(index) => onMonthChange(index)}>
         {MONTHS.map((m, i) => (
           <Tab.Item key={m} selected={selectedMonthIndex === i}>
             {m}월

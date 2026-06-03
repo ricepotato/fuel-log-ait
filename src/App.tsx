@@ -10,6 +10,10 @@ import type { FuelLog } from "./types/fuelLog";
 function App() {
   const [page, setPage] = useState<string | null>("fuel");
   const [editingLog, setEditingLog] = useState<FuelLog | null>(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(
+    new Date().getMonth(),
+  );
 
   if (page === "fuel")
     return (
@@ -19,6 +23,10 @@ function App() {
           setEditingLog(log);
           setPage("fuel-edit");
         }}
+        selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
+        selectedMonthIndex={selectedMonthIndex}
+        onMonthChange={setSelectedMonthIndex}
       />
     );
   if (page === "fuel-create")
