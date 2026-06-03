@@ -1,5 +1,5 @@
 import { Button, Slider, TextField, Toast, Top } from "@toss/tds-mobile";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import { useToast } from "../hooks/useToast";
@@ -33,9 +33,6 @@ export function FuelLogForm({ initialData }: Props) {
   const [odometer, setOdometer] = useState(
     initialData ? initialData.odometer.toLocaleString() : "",
   );
-  const [liters, setLiters] = useState(
-    initialData ? initialData.liters.toString() : "",
-  );
   const [pricePerLiter, setPricePerLiter] = useState(
     initialData ? initialData.pricePerLiter.toLocaleString() : "",
   );
@@ -43,19 +40,11 @@ export function FuelLogForm({ initialData }: Props) {
     initialData ? initialData.totalPrice.toLocaleString() : "",
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 100);
-  const [isLitersManual, setIsLitersManual] = useState(!!initialData);
 
-  // totalPrice / pricePerLiter → liters 자동 계산
-  useEffect(() => {
-    if (isLitersManual) return;
-    const p = parseFloat(pricePerLiter.replace(/,/g, ""));
-    const t = parseFloat(totalPrice.replace(/,/g, ""));
-    if (!isNaN(p) && !isNaN(t) && p > 0 && t > 0) {
-      setLiters((t / p).toFixed(2));
-    } else {
-      setLiters("");
-    }
-  }, [pricePerLiter, totalPrice, isLitersManual]);
+  const p = parseFloat(pricePerLiter.replace(/,/g, ""));
+  const t = parseFloat(totalPrice.replace(/,/g, ""));
+  const liters =
+    p > 0 && t > 0 && !isNaN(p) && !isNaN(t) ? (t / p).toFixed(2) : "";
 
   const isValid = Boolean(
     date && location && liters && pricePerLiter && totalPrice && odometer,
@@ -180,28 +169,14 @@ export function FuelLogForm({ initialData }: Props) {
         </div>
 
         {/* 주유량 */}
-        <TextField.Clearable
+        <TextField
           variant="line"
           label="주유량"
           labelOption="sustain"
           placeholder="0.00"
           suffix="L"
           value={liters}
-          help={"리터당 금액과 총 금액으로 자동 계산해요"}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^0-9.]/g, "");
-            if (!raw) {
-              setLiters("");
-              setIsLitersManual(false);
-            } else {
-              setLiters(raw);
-              setIsLitersManual(true);
-            }
-          }}
-          onClear={() => {
-            setLiters("");
-            setIsLitersManual(false);
-          }}
+          help="리터당 금액과 총 금액으로 자동 계산해요"
           required={false}
           disabled
         />
