@@ -131,7 +131,7 @@ export function FuelLogForm({ onBack, initialData }: Props) {
           display: "flex",
           flexDirection: "column",
           gap: 24,
-          padding: "8px 24px 0",
+          padding: "0px 0px",
         }}
       >
         {/* 폼 */}
@@ -173,32 +173,6 @@ export function FuelLogForm({ onBack, initialData }: Props) {
             required={false}
           />
 
-          {/* 주유량 */}
-          <TextField.Clearable
-            variant="line"
-            label="주유량"
-            labelOption="sustain"
-            placeholder="0.00"
-            suffix="L"
-            value={liters}
-            help={"리터당 금액과 총 금액으로 자동 계산해요"}
-            onChange={(e) => {
-              const raw = e.target.value.replace(/[^0-9.]/g, "");
-              if (!raw) {
-                setLiters("");
-                setIsLitersManual(false);
-              } else {
-                setLiters(raw);
-                setIsLitersManual(true);
-              }
-            }}
-            onClear={() => {
-              setLiters("");
-              setIsLitersManual(false);
-            }}
-            required={false}
-          />
-
           {/* 리터당 금액 */}
           <TextField.Clearable
             variant="line"
@@ -225,6 +199,33 @@ export function FuelLogForm({ onBack, initialData }: Props) {
             onClear={() => setTotalPrice("")}
           />
         </div>
+
+        {/* 주유량 */}
+        <TextField.Clearable
+          variant="line"
+          label="주유량"
+          labelOption="sustain"
+          placeholder="0.00"
+          suffix="L"
+          value={liters}
+          help={"리터당 금액과 총 금액으로 자동 계산해요"}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/[^0-9.]/g, "");
+            if (!raw) {
+              setLiters("");
+              setIsLitersManual(false);
+            } else {
+              setLiters(raw);
+              setIsLitersManual(true);
+            }
+          }}
+          onClear={() => {
+            setLiters("");
+            setIsLitersManual(false);
+          }}
+          required={false}
+          disabled
+        />
 
         {/* 연료 잔량 */}
         <div style={{ padding: "0 24px" }}>

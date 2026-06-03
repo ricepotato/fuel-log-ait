@@ -1,131 +1,30 @@
-import { ListRow, Tab, Top } from "@toss/tds-mobile";
+import { useEffect, useState } from "react";
+import { ListRow, Tab } from "@toss/tds-mobile";
 import type { FuelLog } from "../types/fuelLog";
-
-interface Props {
-  onNavigate: (page: string) => void;
-  onEdit: (log: FuelLog) => void;
-  selectedYear: number;
-  onYearChange: (year: number) => void;
-  selectedMonthIndex: number;
-  onMonthChange: (monthIndex: number) => void;
-}
-
-const sampleFuelLogs: FuelLog[] = [
-  {
-    id: "1",
-    date: "2026-06-01",
-    location: "GS칼텍스 강남대로점",
-    liters: 45.2,
-    pricePerLiter: 1720,
-    totalPrice: 77744,
-    odometer: 52300,
-    fuelLevel: 100,
-  },
-  {
-    id: "2",
-    date: "2026-05-18",
-    location: "SK에너지 서초IC점",
-    liters: 30.5,
-    pricePerLiter: 1705,
-    totalPrice: 52003,
-    odometer: 51870,
-    fuelLevel: 70,
-  },
-  {
-    id: "3",
-    date: "2026-05-03",
-    location: "현대오일뱅크 잠실점",
-    liters: 41.8,
-    pricePerLiter: 1698,
-    totalPrice: 70976,
-    odometer: 51320,
-    fuelLevel: 95,
-  },
-  {
-    id: "4",
-    date: "2026-04-20",
-    location: "S-OIL 송파대로점",
-    liters: 25.0,
-    pricePerLiter: 1712,
-    totalPrice: 42800,
-    odometer: 50780,
-    fuelLevel: 55,
-  },
-  {
-    id: "5",
-    date: "2026-04-06",
-    location: "GS칼텍스 올림픽대로점",
-    liters: 38.3,
-    pricePerLiter: 1695,
-    totalPrice: 64919,
-    odometer: 50210,
-    fuelLevel: 90,
-  },
-  {
-    id: "6",
-    date: "2026-03-22",
-    location: "SK에너지 판교점",
-    liters: 20.1,
-    pricePerLiter: 1680,
-    totalPrice: 33768,
-    odometer: 49650,
-    fuelLevel: 50,
-  },
-  {
-    id: "7",
-    date: "2026-03-09",
-    location: "현대오일뱅크 분당점",
-    liters: 44.7,
-    pricePerLiter: 1675,
-    totalPrice: 74873,
-    odometer: 49100,
-    fuelLevel: 100,
-  },
-  {
-    id: "8",
-    date: "2026-02-22",
-    location: "S-OIL 동탄점",
-    liters: 32.6,
-    pricePerLiter: 1660,
-    totalPrice: 54116,
-    odometer: 48430,
-    fuelLevel: 75,
-  },
-  {
-    id: "9",
-    date: "2026-02-08",
-    location: "GS칼텍스 수원점",
-    liters: 15.5,
-    pricePerLiter: 1655,
-    totalPrice: 25653,
-    odometer: 47890,
-    fuelLevel: 35,
-  },
-  {
-    id: "10",
-    date: "2026-01-25",
-    location: "SK에너지 용인점",
-    liters: 42.0,
-    pricePerLiter: 1648,
-    totalPrice: 69216,
-    odometer: 47200,
-    fuelLevel: 100,
-  },
-];
+import { getFuelLogs } from "../repository";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 export function FuelLogList({
-  onNavigate,
-  onEdit,
   selectedYear,
   onYearChange,
   selectedMonthIndex,
   onMonthChange,
-}: Props) {
+}: {
+  selectedYear: number;
+  onYearChange: (year: number) => void;
+  selectedMonthIndex: number;
+  onMonthChange: (monthIndex: number) => void;
+}) {
+  const [logs, setLogs] = useState<FuelLog[]>([]);
+
+  useEffect(() => {
+    getFuelLogs().then(setLogs);
+  }, []);
+
   const selectedMonth = MONTHS[selectedMonthIndex];
 
-  const filtered = sampleFuelLogs
+  const filtered = logs
     .filter((log) => {
       const d = new Date(log.date);
       return (
@@ -217,7 +116,7 @@ export function FuelLogList({
             fontSize: 15,
           }}
         >
-          이 달의 주유 기록이 없어요
+          이 달의 주유 기록이 없어요!
         </div>
       )}
 
@@ -227,7 +126,7 @@ export function FuelLogList({
         return (
           <ListRow
             key={log.id}
-            onClick={() => onEdit(log)}
+            onClick={() => {}}
             border={index === 0 ? "none" : "indented"}
             left={
               <ListRow.AssetText shape="squircle" size="medium">
@@ -255,7 +154,7 @@ export function FuelLogList({
       {/* Floating Action Button */}
       <button
         aria-label="새 주유 기록 추가"
-        onClick={() => onNavigate("fuel-create")}
+        onClick={() => {}}
         style={{
           position: "fixed",
           bottom: 32,
