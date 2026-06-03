@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
 import { Button, Slider, TextField } from "@toss/tds-mobile";
-import type { FuelLog } from "../types/fuelLog";
+import { useEffect, useState } from "react";
 import { DatepickerButton } from "../components/DatepickerButton";
+import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
   onBack: () => void;
