@@ -144,7 +144,7 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
                 key={wd}
                 style={{
                   textAlign: "center",
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: 600,
                   color: i === 0 ? "#F04452" : i === 6 ? "#3182F6" : "#8B95A1",
                   paddingBottom: 4,
@@ -158,9 +158,10 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
           {/* 날짜 그리드 */}
           <div
             style={{
+              width: "100%",
               display: "grid",
               gridTemplateColumns: "repeat(7, 1fr)",
-              gap: 2,
+              gap: 1,
             }}
           >
             {cells.map((day, i) => {
@@ -191,7 +192,7 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
                         : col === 6
                           ? "#3182F6"
                           : "#191F28",
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: isSelected || isToday ? 700 : 400,
                     cursor: "pointer",
                   }}
