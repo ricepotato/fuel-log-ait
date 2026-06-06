@@ -78,6 +78,7 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
   const cells: (number | null)[] = [
     ...Array(firstWeekday).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+    ...Array(42 - firstWeekday - daysInMonth).fill(null), // 높이를 맞추기 위한 빈 셀
   ];
 
   return (
@@ -165,7 +166,13 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
             }}
           >
             {cells.map((day, i) => {
-              if (!day) return <div key={i} />;
+              console.log({ day, i });
+              if (!day)
+                return (
+                  <div key={i} style={{ height: 48 }}>
+                    &nbsp;
+                  </div>
+                );
 
               const mm = String(viewMonth + 1).padStart(2, "0");
               const dd = String(day).padStart(2, "0");
@@ -180,6 +187,7 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
                   onClick={() => handleSelectDay(day)}
                   style={{
                     width: "100%",
+                    height: 48,
                     aspectRatio: "1",
                     borderRadius: "50%",
                     border:
