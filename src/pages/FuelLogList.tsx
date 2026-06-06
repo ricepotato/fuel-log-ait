@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ListRow, Tab } from "@toss/tds-mobile";
+import { useFuelLogFilter } from "../context/FuelLogFilterContext";
 import type { FuelLog } from "../types/fuelLog";
 import { getFuelLogs } from "../repository";
 
@@ -8,10 +9,8 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 export function FuelLogList() {
   const navigate = useNavigate();
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonthIndex, setSelectedMonthIndex] = useState(
-    new Date().getMonth(),
-  );
+  const { selectedYear, selectedMonthIndex, setSelectedYear, setSelectedMonthIndex } =
+    useFuelLogFilter();
   const [logs, setLogs] = useState<FuelLog[]>([]);
 
   useEffect(() => {

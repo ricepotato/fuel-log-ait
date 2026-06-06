@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import config from "../granite.config.ts";
 import App from "./App.tsx";
+import { FuelLogFilterProvider } from "./context/FuelLogFilterContext.tsx";
 import { ToastProvider } from "./hooks/useToast.tsx";
 import "./index.css";
 
@@ -12,9 +13,11 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <TDSMobileAITProvider brandPrimaryColor={config.brand.primaryColor}>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
+        <FuelLogFilterProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </FuelLogFilterProvider>
       </TDSMobileAITProvider>
     </BrowserRouter>
   </StrictMode>,
