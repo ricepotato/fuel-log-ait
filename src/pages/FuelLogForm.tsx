@@ -112,8 +112,10 @@ export function FuelLogForm({ initialData }: Props) {
       fuelLevel,
     };
     if (initialData) {
+      console.log(`update: ${JSON.stringify(log)}`);
       await updateFuelLog(log);
     } else {
+      console.log(`add: ${JSON.stringify(log)}`);
       await addFuelLog(log);
     }
     show({
@@ -161,7 +163,6 @@ export function FuelLogForm({ initialData }: Props) {
             labelOption="sustain"
             placeholder="YYYY-MM-DD"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
             style={{ width: "100%" }}
             right={<DatepickerButton value={date} onChange={setDate} />}
             required
@@ -213,7 +214,10 @@ export function FuelLogForm({ initialData }: Props) {
               placeholder="0 (필수)"
               suffix="원"
               value={totalPrice}
-              onChange={(e) => setTotalPrice(toNumberString(e.target.value))}
+              onChange={(e) => {
+                setTotalPrice(toNumberString(e.target.value));
+                setShowTotalPricePopover(false);
+              }}
               required
               onClear={() => {
                 setTotalPrice("");

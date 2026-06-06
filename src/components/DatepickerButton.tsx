@@ -166,7 +166,6 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
             }}
           >
             {cells.map((day, i) => {
-              console.log({ day, i });
               if (!day)
                 return (
                   <div key={i} style={{ height: 48 }}>
