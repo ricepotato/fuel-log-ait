@@ -107,6 +107,7 @@ export function FuelLogForm({ initialData }: Props) {
         ? parseFloat(pricePerLiter.replace(/,/g, ""))
         : undefined,
       fuelLevel,
+      liters: liters ? parseFloat(liters) : undefined,
     };
     if (initialData) {
       console.log(`update: ${JSON.stringify(log)}`);

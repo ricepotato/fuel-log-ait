@@ -147,14 +147,14 @@ export function FuelLogList() {
             contents={
               <ListRow.Texts
                 type="2RowTypeA"
-                top={contentsTop}
+                top={`${log.totalPrice.toLocaleString()}원`}
                 bottom={contentsBottom ? contentsBottom : ""}
               />
             }
             right={
               <ListRow.Texts
                 type="Right2RowTypeA"
-                top={`${log.totalPrice.toLocaleString()}원`}
+                top={`${log.liters != null ? `${log.liters}L` : "-"}`}
                 bottom={rightBottom ? rightBottom : ""}
               />
             }
