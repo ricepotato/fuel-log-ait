@@ -36,10 +36,10 @@ export function FuelLogForm({ initialData }: Props) {
   const [date, setDate] = useState(initialData?.date ?? today);
   const [location, setLocation] = useState(initialData?.location ?? "");
   const [odometer, setOdometer] = useState(
-    initialData ? initialData.odometer.toLocaleString() : "",
+    initialData?.odometer?.toLocaleString() ?? "",
   );
   const [pricePerLiter, setPricePerLiter] = useState(
-    initialData ? initialData.pricePerLiter.toLocaleString() : "",
+    initialData?.pricePerLiter?.toLocaleString() ?? "",
   );
   const [totalPrice, setTotalPrice] = useState(
     initialData ? initialData.totalPrice.toLocaleString() : "",
@@ -82,9 +82,7 @@ export function FuelLogForm({ initialData }: Props) {
   const liters =
     p > 0 && t > 0 && !isNaN(p) && !isNaN(t) ? (t / p).toFixed(2) : "";
 
-  const isValid = Boolean(
-    date && liters && pricePerLiter && totalPrice && odometer,
-  );
+  const isValid = Boolean(date && totalPrice);
 
   const handleDelete = async () => {
     if (!initialData) return;
@@ -105,11 +103,12 @@ export function FuelLogForm({ initialData }: Props) {
     const log: FuelLog = {
       id: initialData?.id ?? Date.now().toString(),
       date,
-      location,
-      liters: parseFloat(liters),
-      pricePerLiter: parseFloat(pricePerLiter.replace(/,/g, "")),
       totalPrice: parseFloat(totalPrice.replace(/,/g, "")),
-      odometer: parseInt(odometer.replace(/,/g, "")),
+      location: location.trim() || undefined,
+      odometer: odometer ? parseFloat(odometer.replace(/,/g, "")) : undefined,
+      pricePerLiter: pricePerLiter
+        ? parseFloat(pricePerLiter.replace(/,/g, ""))
+        : undefined,
       fuelLevel,
     };
     if (initialData) {
@@ -173,7 +172,7 @@ export function FuelLogForm({ initialData }: Props) {
             variant="line"
             label="주유소"
             labelOption="sustain"
-            placeholder="주유소 이름 입력"
+            placeholder="주유소 이름 입력 (선택)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onClear={() => setLocation("")}
@@ -185,7 +184,7 @@ export function FuelLogForm({ initialData }: Props) {
             variant="line"
             label="누적 주행거리"
             labelOption="sustain"
-            placeholder="0"
+            placeholder="0 (선택)"
             suffix="km"
             value={odometer}
             onChange={(e) => setOdometer(toNumberString(e.target.value))}
@@ -197,7 +196,7 @@ export function FuelLogForm({ initialData }: Props) {
             variant="line"
             label="리터당 금액"
             labelOption="sustain"
-            placeholder="0"
+            placeholder="0 (선택)"
             suffix="원/L"
             value={pricePerLiter}
             onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
@@ -211,12 +210,15 @@ export function FuelLogForm({ initialData }: Props) {
               variant="line"
               label="총 주유 금액"
               labelOption="sustain"
-              placeholder="0"
+              placeholder="0 (필수)"
               suffix="원"
               value={totalPrice}
               onChange={(e) => setTotalPrice(toNumberString(e.target.value))}
               required
-              onClear={() => setTotalPrice("")}
+              onClear={() => {
+                setTotalPrice("");
+                setShowTotalPricePopover(false);
+              }}
               onFocus={() => {
                 if (frequentTotalPrices.length > 0)
                   setShowTotalPricePopover(true);

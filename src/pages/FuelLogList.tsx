@@ -9,8 +9,12 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 export function FuelLogList() {
   const navigate = useNavigate();
-  const { selectedYear, selectedMonthIndex, setSelectedYear, setSelectedMonthIndex } =
-    useFuelLogFilter();
+  const {
+    selectedYear,
+    selectedMonthIndex,
+    setSelectedYear,
+    setSelectedMonthIndex,
+  } = useFuelLogFilter();
   const [logs, setLogs] = useState<FuelLog[]>([]);
 
   useEffect(() => {
@@ -29,7 +33,8 @@ export function FuelLogList() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const totalSpend = filtered.reduce((sum, log) => sum + log.totalPrice, 0);
-  const totalLiters = filtered.reduce((sum, log) => sum + log.liters, 0);
+  const totalLiters = filtered.reduce((sum, log) => sum + (log.liters ?? 0), 0);
+  const hasAnyLiters = filtered.some((log) => log.liters != null);
 
   return (
     <main>
@@ -95,8 +100,8 @@ export function FuelLogList() {
           }}
         >
           <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-            {selectedMonth}월 · {filtered.length}회 주유 · 총{" "}
-            {totalLiters.toFixed(1)}L
+            {selectedMonth}월 · {filtered.length}회 주유
+            {hasAnyLiters ? ` · 총 ${totalLiters.toFixed(1)}L` : ""}
           </div>
           <div style={{ fontSize: 20, fontWeight: 700, color: "#191F28" }}>
             {totalSpend.toLocaleString()}원
@@ -118,6 +123,17 @@ export function FuelLogList() {
       {/* Fuel log list */}
       {filtered.map((log, index) => {
         const day = new Date(log.date).getDate();
+        const contentsTop = log.liters != null ? `${log.liters}L` : "-";
+        const bottomParts = [
+          log.location,
+          log.odometer != null ? `${log.odometer.toLocaleString()}km` : null,
+        ].filter(Boolean);
+        const contentsBottom =
+          bottomParts.length > 0 ? bottomParts.join(" · ") : undefined;
+        const rightBottom =
+          log.pricePerLiter != null
+            ? `${log.pricePerLiter.toLocaleString()}원/L`
+            : undefined;
         return (
           <ListRow
             key={log.id}
@@ -131,15 +147,15 @@ export function FuelLogList() {
             contents={
               <ListRow.Texts
                 type="2RowTypeA"
-                top={`${log.liters}L`}
-                bottom={`${log.location} · ${log.odometer.toLocaleString()}km`}
+                top={contentsTop}
+                bottom={contentsBottom ? contentsBottom : ""}
               />
             }
             right={
               <ListRow.Texts
                 type="Right2RowTypeA"
                 top={`${log.totalPrice.toLocaleString()}원`}
-                bottom={`${log.pricePerLiter.toLocaleString()}원/L`}
+                bottom={rightBottom ? rightBottom : ""}
               />
             }
           />
