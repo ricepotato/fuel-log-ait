@@ -30,7 +30,7 @@ export function FuelLogList() {
         d.getFullYear() === selectedYear && d.getMonth() + 1 === selectedMonth
       );
     })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => (Number(a.id) > Number(b.id) ? -1 : 1)); // 최신순 정렬
 
   const totalSpend = filtered.reduce((sum, log) => sum + log.totalPrice, 0);
   const totalLiters = filtered.reduce((sum, log) => sum + (log.liters ?? 0), 0);
