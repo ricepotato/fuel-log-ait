@@ -1,5 +1,6 @@
 import { saveBase64Data } from "@apps-in-toss/web-framework";
 import { BottomSheet, ListRow } from "@toss/tds-mobile";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/useToast";
 import { getFuelLogs } from "../repository";
 
@@ -56,6 +57,7 @@ export default function SettingsBottomSheet({
   setOpen: (open: boolean) => void;
 }) {
   const { show } = useToast();
+  const navigate = useNavigate();
 
   async function exportToCsv() {
     const logs = await getFuelLogs();
@@ -81,25 +83,21 @@ export default function SettingsBottomSheet({
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
     const dateStr = new Date().toISOString();
     const fileName = `주유기록_${dateStr}.csv`;
-    show({
-      text: "주유기록 데이터를 내보냈어요",
-      duration: 2000,
-    });
     const isSuccess = await handleSaveBase64Data({
       fileName,
       data: await blobToBase64(blob),
       mimeType: "text/csv",
     });
 
-    if (!isSuccess) {
+    if (isSuccess) {
       setOpen(false);
       show({
-        text: "데이터가 기기에 저장됐어요",
+        text: "주유기록 데이터를 내보냈어요",
         duration: 2000,
       });
     } else {
       show({
-        text: "데이터 저장에 실패했어요",
+        text: "데이터 내보내기에 실패했어요",
         duration: 2000,
       });
     }
@@ -117,13 +115,11 @@ export default function SettingsBottomSheet({
           onClick={exportToCsv}
         />
         <ListRow
-          border="indented"
-          contents={<ListRow.Texts type="1RowTypeA" top="데이터 가져오기" />}
-          onClick={() => {}}
-        />
-        <ListRow
           contents={<ListRow.Texts type="1RowTypeA" top="통계 보기" />}
-          onClick={() => {}}
+          onClick={() => {
+            setOpen(false);
+            navigate("/statistics");
+          }}
         />
       </div>
     </BottomSheet>

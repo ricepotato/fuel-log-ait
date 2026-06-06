@@ -7,6 +7,7 @@ import { FuelLogList } from "./pages/FuelLogList";
 import { getFuelLogById } from "./repository";
 import type { FuelLog } from "./types/fuelLog";
 import SettingsBottomSheet from "./components/SettingsBottomSheet";
+import { StatisticsPage } from "./pages/StatisticsPage";
 
 function EditFuelLogRoute() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +52,7 @@ function App() {
         <Route path="/" element={<FuelLogList />} />
         <Route path="/add" element={<FuelLogForm />} />
         <Route path="/edit/:id" element={<EditFuelLogRoute />} />
+        <Route path="/statistics" element={<StatisticsPage />} />
       </Routes>
       <SettingsBottomSheet open={showSettings} setOpen={setShowSettings} />
     </>
