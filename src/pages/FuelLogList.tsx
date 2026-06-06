@@ -147,33 +147,39 @@ export function FuelLogList() {
         );
       })}
 
-      {/* Floating Action Button */}
-      <button
-        aria-label="새 주유 기록 추가"
-        onClick={() => navigate("/add")}
-        style={{
-          position: "fixed",
-          bottom: 32,
-          right: 24,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          backgroundColor: "#3182F6",
-          border: "none",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(49, 130, 246, 0.45)",
-          zIndex: 100,
-        }}
-      >
-        <span
-          style={{ color: "white", fontSize: 32, lineHeight: 1, marginTop: -2 }}
-        >
-          +
-        </span>
-      </button>
+      <AddFuelLogButton />
     </main>
+  );
+}
+
+function AddFuelLogButton() {
+  const navigate = useNavigate();
+  return (
+    <button
+      aria-label="새 주유 기록 추가"
+      onClick={() => navigate("/add")}
+      style={{
+        position: "fixed",
+        bottom: 64,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        backgroundColor: "#3182F6",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 16px rgba(49, 130, 246, 0.45)",
+        zIndex: 100,
+      }}
+    >
+      <span
+        style={{ color: "white", fontSize: 32, lineHeight: 1, marginTop: -2 }}
+      >
+        +
+      </span>
+    </button>
   );
 }

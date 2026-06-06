@@ -3,7 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import { useToast } from "../hooks/useToast";
-import { addFuelLog, getFuelLogs, updateFuelLog } from "../repository";
+import {
+  addFuelLog,
+  getFuelLogs,
+  removeFuelLog,
+  updateFuelLog,
+} from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 
 interface Props {
@@ -80,6 +85,21 @@ export function FuelLogForm({ initialData }: Props) {
   const isValid = Boolean(
     date && liters && pricePerLiter && totalPrice && odometer,
   );
+
+  const handleDelete = async () => {
+    if (!initialData) return;
+    if (window.confirm("정말 이 주유 기록을 삭제할까요?")) {
+      await removeFuelLog(initialData.id);
+      show({
+        text: "주유 기록이 삭제됐어요",
+        leftAddon: (
+          <Toast.Lottie src="https://static.toss.im/lotties-common/check-green-spot.json" />
+        ),
+        duration: 2000,
+      });
+      navigate(-1);
+    }
+  };
 
   const handleSave = async () => {
     const log: FuelLog = {
@@ -198,7 +218,8 @@ export function FuelLogForm({ initialData }: Props) {
               required
               onClear={() => setTotalPrice("")}
               onFocus={() => {
-                if (frequentTotalPrices.length > 0) setShowTotalPricePopover(true);
+                if (frequentTotalPrices.length > 0)
+                  setShowTotalPricePopover(true);
               }}
             />
             {showTotalPricePopover && (
@@ -318,19 +339,59 @@ export function FuelLogForm({ initialData }: Props) {
             label={{ min: "E", max: "F" }}
           />
         </div>
-        <div style={{ padding: "0 24px 48px 24px" }}>
-          <Button
-            disabled={!isValid}
-            onClick={handleSave}
-            color="primary"
-            variant="fill"
-            type="submit"
-            style={{ width: "100%" }}
-          >
-            저장하기
-          </Button>
-        </div>
+        <ActionSection>
+          <SaveButton disabled={!isValid} onSave={handleSave} />
+          {initialData && <DeleteButton onDelete={handleDelete} />}
+        </ActionSection>
       </div>
     </main>
+  );
+}
+
+function ActionSection({ children }: { children: React.ReactNode }) {
+  return (
+    <section
+      style={{
+        padding: "0 24px 48px 24px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function SaveButton({
+  disabled,
+  onSave,
+}: {
+  disabled: boolean;
+  onSave: () => void;
+}) {
+  return (
+    <Button
+      color="primary"
+      variant="fill"
+      style={{ width: "100%" }}
+      onClick={onSave}
+      disabled={disabled}
+    >
+      저장하기
+    </Button>
+  );
+}
+
+function DeleteButton({ onDelete }: { onDelete: () => void }) {
+  return (
+    <Button
+      color="danger"
+      variant="fill"
+      style={{ width: "100%" }}
+      onClick={onDelete}
+    >
+      삭제하기
+    </Button>
   );
 }
