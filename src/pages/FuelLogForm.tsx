@@ -48,6 +48,7 @@ export function FuelLogForm({ initialData }: Props) {
 
   const [frequentTotalPrices, setFrequentTotalPrices] = useState<number[]>([]);
   const [showTotalPricePopover, setShowTotalPricePopover] = useState(false);
+  const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const totalPriceFieldRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,6 +64,13 @@ export function FuelLogForm({ initialData }: Props) {
         .slice(0, 5)
         .map(([price]) => price);
       setFrequentTotalPrices(top);
+
+      const recentWithOdometer = logs
+        .filter((log) => log.odometer != null && log.id !== initialData?.id)
+        .sort((a, b) => (a.date > b.date ? -1 : 1))[0];
+      if (recentWithOdometer?.odometer != null) {
+        setLastOdometer(recentWithOdometer.odometer);
+      }
     });
   }, []);
 
@@ -180,7 +188,11 @@ export function FuelLogForm({ initialData }: Props) {
             variant="line"
             label="누적 주행거리"
             labelOption="sustain"
-            placeholder="0 (선택)"
+            placeholder={
+              lastOdometer != null
+                ? `${lastOdometer.toLocaleString()} (선택)`
+                : "0 (선택)"
+            }
             suffix="km"
             value={odometer}
             onChange={(e) => setOdometer(toNumberString(e.target.value))}
