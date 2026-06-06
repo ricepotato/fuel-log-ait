@@ -90,9 +90,6 @@ export function FuelLogForm({ initialData }: Props) {
       await removeFuelLog(initialData.id);
       show({
         text: "주유 기록이 삭제됐어요",
-        leftAddon: (
-          <Toast.Lottie src="https://static.toss.im/lotties-common/check-green-spot.json" />
-        ),
         duration: 2000,
       });
       navigate(-1);
@@ -120,9 +117,6 @@ export function FuelLogForm({ initialData }: Props) {
     }
     show({
       text: "주유 기록이 저장됐어요",
-      leftAddon: (
-        <Toast.Lottie src="https://static.toss.im/lotties-common/check-green-spot.json" />
-      ),
       duration: 2000,
     });
     navigate(-1);
