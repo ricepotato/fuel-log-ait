@@ -29,3 +29,19 @@ AI를 사용하시는 경우 [여기](https://developers-apps-in-toss.toss.im/de
 
 /Users/ricepotato/dev/fuel-log-ait/src/pages/FuelLogList.tsx 이 화면은 주유기록 목록을 보여주는 화면임. 상단에 년도, 월을 선택할 수 있는 컴포넌트를 배치. 화면중간에는 주유한
 날짜 주유량(리터) 주유한 장소, 구간 (km), 주유 금액, 주유한
+
+## deploy
+
+https://developers-apps-in-toss.toss.im/development/test/toss.html
+
+토큰 추가하기
+
+```
+npx ait token add
+```
+
+배포하기
+
+```
+npx ait deploy
+```
