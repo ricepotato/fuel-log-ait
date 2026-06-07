@@ -2,6 +2,7 @@ import { Button, Slider, TextField, Top } from "@toss/tds-mobile";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
+import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import { useToast } from "../hooks/useToast";
 import {
   addFuelLog,
@@ -51,6 +52,8 @@ export function FuelLogForm({ initialData }: Props) {
   const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const totalPriceFieldRef = useRef<HTMLDivElement>(null);
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   useEffect(() => {
     getFuelLogs().then((logs) => {
       const freq = new Map<number, number>();
@@ -94,14 +97,12 @@ export function FuelLogForm({ initialData }: Props) {
 
   const handleDelete = async () => {
     if (!initialData) return;
-    if (window.confirm("정말 이 주유 기록을 삭제할까요?")) {
-      await removeFuelLog(initialData.id);
-      show({
-        text: "주유 기록이 삭제됐어요",
-        duration: 2000,
-      });
-      navigate(-1);
-    }
+    await removeFuelLog(initialData.id);
+    show({
+      text: "주유 기록이 삭제됐어요",
+      duration: 2000,
+    });
+    navigate(-1);
   };
 
   const handleSave = async () => {
@@ -354,7 +355,14 @@ export function FuelLogForm({ initialData }: Props) {
         </div>
         <ActionSection>
           <SaveButton disabled={!isValid} onSave={handleSave} />
-          {initialData && <DeleteButton onDelete={handleDelete} />}
+          {initialData && (
+            <DeleteButton onDelete={() => setShowDeleteConfirm(true)} />
+          )}
+          <DeleteConfirmDialog
+            open={showDeleteConfirm}
+            setOpen={setShowDeleteConfirm}
+            onConfirm={handleDelete}
+          />
         </ActionSection>
       </div>
     </main>
