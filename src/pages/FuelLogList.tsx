@@ -162,8 +162,36 @@ export function FuelLogList() {
         );
       })}
 
+      <ReceiptScanButton />
       <AddFuelLogButton />
     </main>
+  );
+}
+
+function ReceiptScanButton() {
+  return (
+    <button
+      aria-label="영수증 스캔"
+      onClick={() => {}}
+      style={{
+        position: "fixed",
+        bottom: 64,
+        right: 92,
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        backgroundColor: "#FFFFFF",
+        border: "1.5px solid #E5E8EB",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.10)",
+        zIndex: 100,
+      }}
+    >
+      <img src="/icon-camera.svg" alt="" width={24} height={24} />
+    </button>
   );
 }
 

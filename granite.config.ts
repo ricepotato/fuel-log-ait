@@ -22,6 +22,15 @@ export default defineConfig({
     withBackButton: true,
     withHomeButton: true,
   },
-  permissions: [],
+  permissions: [
+    {
+      name: "camera",
+      access: "access",
+    },
+    {
+      name: "photos",
+      access: "read",
+    },
+  ],
   outdir: "dist",
 });
