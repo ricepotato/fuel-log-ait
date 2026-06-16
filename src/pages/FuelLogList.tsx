@@ -4,6 +4,7 @@ import { ListRow, Tab } from "@toss/tds-mobile";
 import { useFuelLogFilter } from "../context/FuelLogFilterContext";
 import type { FuelLog } from "../types/fuelLog";
 import { getFuelLogs } from "../repository";
+import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -169,29 +170,42 @@ export function FuelLogList() {
 }
 
 function ReceiptScanButton() {
+  const [open, setOpen] = useState(false);
+
+  function handleImageSelected(dataUri: string) {
+    console.log("영수증 이미지 선택됨:", dataUri.slice(0, 80));
+  }
+
   return (
-    <button
-      aria-label="영수증 스캔"
-      onClick={() => {}}
-      style={{
-        position: "fixed",
-        bottom: 64,
-        right: 92,
-        width: 56,
-        height: 56,
-        borderRadius: "50%",
-        backgroundColor: "#FFFFFF",
-        border: "1.5px solid #E5E8EB",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.10)",
-        zIndex: 100,
-      }}
-    >
-      <img src="/icon-camera.svg" alt="" width={24} height={24} />
-    </button>
+    <>
+      <ReceiptScanBottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        onImageSelected={handleImageSelected}
+      />
+      <button
+        aria-label="영수증 스캔"
+        onClick={() => setOpen(true)}
+        style={{
+          position: "fixed",
+          bottom: 64,
+          right: 92,
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          backgroundColor: "#FFFFFF",
+          border: "1.5px solid #E5E8EB",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.10)",
+          zIndex: 100,
+        }}
+      >
+        <img src="/icon-camera.svg" alt="" width={24} height={24} />
+      </button>
+    </>
   );
 }
 
