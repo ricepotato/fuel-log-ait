@@ -5,6 +5,7 @@ import { useFuelLogFilter } from "../context/FuelLogFilterContext";
 import type { FuelLog } from "../types/fuelLog";
 import { getFuelLogs } from "../repository";
 import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
+import { useToast } from "../hooks/useToast";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -170,10 +171,12 @@ export function FuelLogList() {
 }
 
 function ReceiptScanButton() {
+  const { show } = useToast();
   const [open, setOpen] = useState(false);
 
   function handleImageSelected(dataUri: string) {
     console.log("영수증 이미지 선택됨:", dataUri.slice(0, 80));
+    show({ text: "영수증이 선택되었습니다.", duration: 2000 });
   }
 
   return (
