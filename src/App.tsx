@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import "./App.css";
 import { FuelLogForm } from "./pages/FuelLogForm";
 import { FuelLogList } from "./pages/FuelLogList";
+import { ReceiptLoadingPage } from "./pages/ReceiptLoadingPage";
 import { getFuelLogById } from "./repository";
 import type { FuelLog } from "./types/fuelLog";
 import SettingsBottomSheet from "./components/SettingsBottomSheet";
@@ -53,6 +54,7 @@ function App() {
         <Route path="/add" element={<FuelLogForm />} />
         <Route path="/edit/:id" element={<EditFuelLogRoute />} />
         <Route path="/statistics" element={<StatisticsPage />} />
+        <Route path="/receipt-loading" element={<ReceiptLoadingPage />} />
       </Routes>
       <SettingsBottomSheet open={showSettings} setOpen={setShowSettings} />
     </>

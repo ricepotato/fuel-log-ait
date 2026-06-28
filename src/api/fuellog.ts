@@ -23,12 +23,14 @@ export async function analyzeReceipt(
   base64: string,
   contentType: string = "image/jpeg",
 ): Promise<ReceiptAnalyzeResult> {
-  const blob = base64ToBlob(base64, contentType);
+  // S3 presigned URL은 image/jpeg로 서명되므로 업로드 타입을 맞춤
+  const uploadContentType = "image/jpeg";
+  const blob = base64ToBlob(base64, uploadContentType);
 
   const uploadUrlResp = await fetch(`${API_URL}/receipt/upload-url`, {
     method: "POST",
     headers: { "x-user-id": userId, "Content-Type": "application/json" },
-    body: JSON.stringify({ content_type: contentType }),
+    body: JSON.stringify({ content_type: uploadContentType }),
   });
   if (!uploadUrlResp.ok) {
     throw new Error(`upload-url 요청 실패: ${uploadUrlResp.status}`);
@@ -37,7 +39,7 @@ export async function analyzeReceipt(
 
   const uploadResp = await fetch(upload_url, {
     method: "PUT",
-    headers: { "Content-Type": contentType },
+    headers: { "Content-Type": uploadContentType },
     body: blob,
   });
   if (!uploadResp.ok) {

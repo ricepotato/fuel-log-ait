@@ -27,7 +27,7 @@ export default function ReceiptScanBottomSheet({
     onClose();
     try {
       const result = await openCamera({ base64: true });
-      onImageSelected("data:image/jpeg;base64," + result.dataUri);
+      onImageSelected(result.dataUri);
     } catch (error) {
       if (error instanceof OpenCameraPermissionError) {
         show({ text: "카메라 접근 권한이 필요해요", duration: 2000 });
