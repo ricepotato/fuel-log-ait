@@ -6,6 +6,7 @@ import { useToast } from "../hooks/useToast";
 
 export interface ImageState {
   previewUri: string;
+  dataUri: string;
 }
 
 interface UseAlbumPhotosProps {
@@ -24,7 +25,7 @@ export function useAlbumPhotos({ base64 = false }: UseAlbumPhotosProps) {
   const loadPhotos = useCallback(async () => {
     try {
       const response = await permissionGate.ensureAndRun(() =>
-        fetchAlbumPhotos({ maxWidth: 360, base64 }),
+        fetchAlbumPhotos({ maxWidth: 500, base64 }),
       );
 
       if (!response) {

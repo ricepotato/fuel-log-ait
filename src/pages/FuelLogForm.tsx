@@ -1,6 +1,6 @@
 import { Button, Slider, TextField, Top } from "@toss/tds-mobile";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import { useToast } from "../hooks/useToast";
@@ -11,6 +11,7 @@ import {
   updateFuelLog,
 } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
+import type { ReceiptAnalyzeResult } from "../api/fuellog";
 
 interface Props {
   initialData?: FuelLog;
@@ -32,18 +33,26 @@ function toNumberString(raw: string): string {
 export function FuelLogForm({ initialData }: Props) {
   const navigate = useNavigate();
   const { show } = useToast();
+  const { state } = useLocation();
+  const receipt: ReceiptAnalyzeResult | undefined = state?.receipt;
   const today = new Date().toISOString().split("T")[0];
 
-  const [date, setDate] = useState(initialData?.date ?? today);
-  const [location, setLocation] = useState(initialData?.location ?? "");
+  const [date, setDate] = useState(initialData?.date ?? receipt?.date ?? today);
+  const [location, setLocation] = useState(
+    initialData?.location ?? receipt?.location ?? "",
+  );
   const [odometer, setOdometer] = useState(
     initialData?.odometer?.toLocaleString() ?? "",
   );
   const [pricePerLiter, setPricePerLiter] = useState(
-    initialData?.pricePerLiter?.toLocaleString() ?? "",
+    initialData?.pricePerLiter?.toLocaleString() ??
+      receipt?.pricePerLiter?.toLocaleString() ??
+      "",
   );
   const [totalPrice, setTotalPrice] = useState(
-    initialData ? initialData.totalPrice.toLocaleString() : "",
+    initialData
+      ? initialData.totalPrice.toLocaleString()
+      : receipt?.totalPrice?.toLocaleString() ?? "",
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 

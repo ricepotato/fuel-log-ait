@@ -6,6 +6,8 @@ import type { FuelLog } from "../types/fuelLog";
 import { getFuelLogs } from "../repository";
 import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
 import { useToast } from "../hooks/useToast";
+import { analyzeReceipt } from "../api/fuellog";
+import { getAnonymousKey } from "@apps-in-toss/web-framework";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -172,11 +174,38 @@ export function FuelLogList() {
 
 function ReceiptScanButton() {
   const { show } = useToast();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
-  function handleImageSelected(dataUri: string) {
-    console.log("영수증 이미지 선택됨:", dataUri.slice(0, 80));
-    show({ text: "영수증이 선택되었습니다.", duration: 2000 });
+  async function handleImageSelected(dataUri: string) {
+    setAnalyzing(true);
+    const anonymousKey = await getAnonymousKey();
+    if (!anonymousKey || anonymousKey === "ERROR") {
+      show({ text: "사용자 키를 가져오지 못했어요", duration: 2000 });
+      setAnalyzing(false);
+      return;
+    }
+
+    const commaIndex = dataUri.indexOf(",");
+    const header = commaIndex !== -1 ? dataUri.slice(0, commaIndex) : "";
+    const base64 = commaIndex !== -1 ? dataUri.slice(commaIndex + 1) : dataUri;
+    const contentType = header.match(/:(.*?);/)?.[1] ?? "image/jpeg";
+
+    show({ text: "영수증을 분석 중이에요...", duration: 3000 });
+    try {
+      const result = await analyzeReceipt(
+        anonymousKey.hash,
+        base64,
+        contentType,
+      );
+      navigate("/add", { state: { receipt: result } });
+    } catch (error) {
+      console.error("영수증 분석 실패:", error);
+      show({ text: "영수증 분석에 실패했어요", duration: 2000 });
+    } finally {
+      setAnalyzing(false);
+    }
   }
 
   return (
@@ -187,8 +216,9 @@ function ReceiptScanButton() {
         onImageSelected={handleImageSelected}
       />
       <button
-        aria-label="영수증 스캔"
-        onClick={() => setOpen(true)}
+        aria-label="영수증 AI 스캔"
+        onClick={() => !analyzing && setOpen(true)}
+        disabled={analyzing}
         style={{
           position: "fixed",
           bottom: 64,
@@ -196,14 +226,15 @@ function ReceiptScanButton() {
           width: 56,
           height: 56,
           borderRadius: "50%",
-          backgroundColor: "#FFFFFF",
+          backgroundColor: analyzing ? "#F2F4F6" : "#FFFFFF",
           border: "1.5px solid #E5E8EB",
-          cursor: "pointer",
+          cursor: analyzing ? "default" : "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.10)",
           zIndex: 100,
+          opacity: analyzing ? 0.6 : 1,
         }}
       >
         <img src="/icon-camera.svg" alt="" width={24} height={24} />

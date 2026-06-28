@@ -10,7 +10,7 @@ import { useEffect } from "react";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onImageSelected: (dataUri: string) => void;
+  onImageSelected: (base64EncodedData: string) => void;
 }
 
 export default function ReceiptScanBottomSheet({
@@ -20,7 +20,7 @@ export default function ReceiptScanBottomSheet({
 }: Props) {
   const { show } = useToast();
   const { albumPhotos, loadPhotos } = useAlbumPhotos({
-    base64: false,
+    base64: true,
   });
 
   async function handleCamera() {
@@ -45,8 +45,7 @@ export default function ReceiptScanBottomSheet({
   useEffect(() => {
     if (albumPhotos.length > 0) {
       const latestPhoto = albumPhotos[albumPhotos.length - 1];
-      console.log("선택된 사진:", latestPhoto.previewUri);
-      onImageSelected(latestPhoto.previewUri);
+      onImageSelected(latestPhoto.dataUri);
     }
   }, [albumPhotos]);
 
@@ -54,7 +53,7 @@ export default function ReceiptScanBottomSheet({
     <BottomSheet
       open={open}
       onClose={onClose}
-      header={<BottomSheet.Header>영수증 스캔</BottomSheet.Header>}
+      header={<BottomSheet.Header>영수증 AI 스캔</BottomSheet.Header>}
     >
       <div style={{ paddingBottom: 24 }}>
         <ListRow
