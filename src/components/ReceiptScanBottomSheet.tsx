@@ -33,7 +33,7 @@ export default function ReceiptScanBottomSheet({
         show({ text: "카메라 접근 권한이 필요해요", duration: 2000 });
         return;
       }
-      show({ text: "사진 촬영에 실패했어요", duration: 2000 });
+      show({ text: "사진 촬영이 취소됐어요", duration: 2000 });
     }
   }
 
@@ -47,7 +47,7 @@ export default function ReceiptScanBottomSheet({
       const latestPhoto = albumPhotos[albumPhotos.length - 1];
       onImageSelected(latestPhoto.dataUri);
     }
-  }, [albumPhotos]);
+  }, [albumPhotos, onImageSelected]);
 
   return (
     <BottomSheet

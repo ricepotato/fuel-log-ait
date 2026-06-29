@@ -25,6 +25,21 @@ npm run deploy
 
 AI를 사용하시는 경우 [여기](https://developers-apps-in-toss.toss.im/development/llms.html)를 확인해보세요.
 
+## ADB port forward
+
+```
+adb reverse tcp:8081 tcp:8081
+adb reverse tcp:5173 tcp:5173
+```
+
+## chrome debug console
+
+크롬을 열고 아래 주소 입력. remove device 에서 inspect 클릭
+
+```
+chrome://inspect/#devices
+```
+
 ## FuelLogList
 
 /Users/ricepotato/dev/fuel-log-ait/src/pages/FuelLogList.tsx 이 화면은 주유기록 목록을 보여주는 화면임. 상단에 년도, 월을 선택할 수 있는 컴포넌트를 배치. 화면중간에는 주유한
