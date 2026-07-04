@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAnonymousKey } from "@apps-in-toss/web-framework";
 import { analyzeReceipt } from "../api/fuellog";
+import { useToast } from "../hooks/useToast";
 
 interface LocationState {
   base64: string;
@@ -12,6 +13,7 @@ export function ReceiptLoadingPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { base64, contentType } = (state ?? {}) as LocationState;
+  const { show } = useToast();
 
   useEffect(() => {
     if (!base64) {
@@ -35,6 +37,7 @@ export function ReceiptLoadingPage() {
           contentType,
         );
         if (!cancelled) {
+          show({ text: "영수증을 인식했어요", duration: 2000 });
           navigate("/add", { replace: true, state: { receipt: result } });
         }
       } catch {

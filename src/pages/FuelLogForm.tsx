@@ -52,7 +52,7 @@ export function FuelLogForm({ initialData }: Props) {
   const [totalPrice, setTotalPrice] = useState(
     initialData
       ? initialData.totalPrice.toLocaleString()
-      : receipt?.totalPrice?.toLocaleString() ?? "",
+      : (receipt?.totalPrice?.toLocaleString() ?? ""),
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 
@@ -303,7 +303,7 @@ export function FuelLogForm({ initialData }: Props) {
             {liters ? `${liters} L` : "0.00 L"}
           </div>
           <div style={{ fontSize: 12, color: "#8B95A1", marginTop: 4 }}>
-            리터당 금액과 총 금액으로 자동 계산해요
+            주유량은 리터당 금액과 총 금액으로 자동 계산해요
           </div>
         </div>
 

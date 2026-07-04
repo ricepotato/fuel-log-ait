@@ -47,7 +47,7 @@ export function useAlbumPhotos({ base64 = false }: UseAlbumPhotosProps) {
         errorMessage = error.message;
       }
 
-      console.log(error);
+      console.error(error);
       show({ text: errorMessage, duration: 2000 });
     }
   }, [base64]);

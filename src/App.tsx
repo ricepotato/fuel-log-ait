@@ -38,7 +38,6 @@ function App() {
     const cleanup = tdsEvent.addEventListener("navigationAccessoryEvent", {
       onEvent: ({ id }) => {
         if (id === "setting") {
-          console.log("버튼 클릭");
           setShowSettings(true);
         }
       },
