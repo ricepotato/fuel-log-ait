@@ -186,7 +186,7 @@ export function DatepickerButton({ value, onChange }: DatepickerButtonProps) {
                   onClick={() => handleSelectDay(day)}
                   style={{
                     width: "100%",
-                    height: 48,
+                    height: 40,
                     aspectRatio: "1",
                     borderRadius: "50%",
                     border:

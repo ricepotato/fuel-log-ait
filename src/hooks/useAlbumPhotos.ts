@@ -25,7 +25,7 @@ export function useAlbumPhotos({ base64 = false }: UseAlbumPhotosProps) {
   const loadPhotos = useCallback(async () => {
     try {
       const response = await permissionGate.ensureAndRun(() =>
-        fetchAlbumPhotos({ maxWidth: 500, base64 }),
+        fetchAlbumPhotos({ maxWidth: 1000, base64 }),
       );
 
       if (!response) {
