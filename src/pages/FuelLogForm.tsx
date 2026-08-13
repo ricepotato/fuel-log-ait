@@ -142,7 +142,11 @@ export function FuelLogForm({ initialData }: Props) {
     await addFuelLog(log);
 
     // 새로 추가한 기록은 인사이트 화면에서 지난 기록과 비교해서 보여줘요
-    navigate(`/insight/${log.id}`, { replace: true });
+    if (log.pricePerLiter !== undefined) {
+      navigate(`/insight/${log.id}`, { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
   };
 
   return (

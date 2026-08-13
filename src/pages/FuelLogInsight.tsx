@@ -5,7 +5,7 @@ import { getFuelLogs } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 
 /** 비교에 사용할 지난 주유 기록 개수 */
-const HISTORY_COUNT = 5;
+const HISTORY_COUNT = 4;
 
 const BLUE = "#3182F6";
 const RED = "#F04452";

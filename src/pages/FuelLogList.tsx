@@ -48,7 +48,8 @@ export function FuelLogList() {
   const hasAnyLiters = filtered.some((log) => log.liters != null);
 
   return (
-    <main>
+    // 아래 floating button 공간 확보를 위한 padding-bottom
+    <main style={{ paddingBottom: 90 }}>
       {/* Year selector */}
       <div
         style={{
@@ -134,7 +135,6 @@ export function FuelLogList() {
       {/* Fuel log list */}
       {filtered.map((log, index) => {
         const day = new Date(log.date).getDate();
-        const contentsTop = log.liters != null ? `${log.liters}L` : "-";
         const bottomParts = [
           log.location,
           log.odometer != null ? `${log.odometer.toLocaleString()}km` : null,
@@ -204,7 +204,7 @@ function ReceiptScanButton() {
         onClick={() => setOpen(true)}
         style={{
           position: "fixed",
-          bottom: 64,
+          bottom: 32,
           right: 92,
           width: 56,
           height: 56,
@@ -233,7 +233,7 @@ function AddFuelLogButton() {
       onClick={() => navigate("/add")}
       style={{
         position: "fixed",
-        bottom: 64,
+        bottom: 32,
         right: 24,
         width: 56,
         height: 56,
