@@ -130,15 +130,19 @@ export function FuelLogForm({ initialData }: Props) {
     if (initialData) {
       console.log(`update: ${JSON.stringify(log)}`);
       await updateFuelLog(log);
-    } else {
-      console.log(`add: ${JSON.stringify(log)}`);
-      await addFuelLog(log);
+      show({
+        text: "주유 기록이 저장됐어요",
+        duration: 2000,
+      });
+      navigate(-1);
+      return;
     }
-    show({
-      text: "주유 기록이 저장됐어요",
-      duration: 2000,
-    });
-    navigate(-1);
+
+    console.log(`add: ${JSON.stringify(log)}`);
+    await addFuelLog(log);
+
+    // 새로 추가한 기록은 인사이트 화면에서 지난 기록과 비교해서 보여줘요
+    navigate(`/insight/${log.id}`, { replace: true });
   };
 
   return (
@@ -179,47 +183,6 @@ export function FuelLogForm({ initialData }: Props) {
             style={{ width: "100%" }}
             right={<DatepickerButton value={date} onChange={setDate} />}
             required
-          />
-
-          {/* 주유소 */}
-          <TextField.Clearable
-            variant="line"
-            label="주유소"
-            labelOption="sustain"
-            placeholder="주유소 이름 입력 (선택)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onClear={() => setLocation("")}
-            required={false}
-          />
-
-          {/* 누적 주행거리 */}
-          <TextField
-            variant="line"
-            label="누적 주행거리"
-            labelOption="sustain"
-            placeholder={
-              lastOdometer != null
-                ? `${lastOdometer.toLocaleString()} (선택)`
-                : "0 (선택)"
-            }
-            suffix="km"
-            value={odometer}
-            onChange={(e) => setOdometer(toNumberString(e.target.value))}
-            required={false}
-          />
-
-          {/* 리터당 금액 */}
-          <TextField.Clearable
-            variant="line"
-            label="리터당 금액"
-            labelOption="sustain"
-            placeholder="0 (선택)"
-            suffix="원/L"
-            value={pricePerLiter}
-            onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
-            required={false}
-            onClear={() => setPricePerLiter("")}
           />
 
           {/* 총 주유 금액 */}
@@ -286,6 +249,47 @@ export function FuelLogForm({ initialData }: Props) {
               </div>
             )}
           </div>
+
+          {/* 리터당 금액 */}
+          <TextField.Clearable
+            variant="line"
+            label="리터당 금액"
+            labelOption="sustain"
+            placeholder="0 (선택)"
+            suffix="원/L"
+            value={pricePerLiter}
+            onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
+            required={false}
+            onClear={() => setPricePerLiter("")}
+          />
+
+          {/* 주유소 */}
+          <TextField.Clearable
+            variant="line"
+            label="주유소"
+            labelOption="sustain"
+            placeholder="주유소 이름 입력 (선택)"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            onClear={() => setLocation("")}
+            required={false}
+          />
+
+          {/* 누적 주행거리 */}
+          <TextField
+            variant="line"
+            label="누적 주행거리"
+            labelOption="sustain"
+            placeholder={
+              lastOdometer != null
+                ? `${lastOdometer.toLocaleString()} (선택)`
+                : "0 (선택)"
+            }
+            suffix="km"
+            value={odometer}
+            onChange={(e) => setOdometer(toNumberString(e.target.value))}
+            required={false}
+          />
         </div>
 
         {/* 주유량 */}

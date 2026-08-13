@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import "./App.css";
 import { FuelLogForm } from "./pages/FuelLogForm";
+import { FuelLogInsight } from "./pages/FuelLogInsight";
 import { FuelLogList } from "./pages/FuelLogList";
 import { ReceiptLoadingPage } from "./pages/ReceiptLoadingPage";
 import { getFuelLogById } from "./repository";
@@ -52,6 +53,7 @@ function App() {
         <Route path="/" element={<FuelLogList />} />
         <Route path="/add" element={<FuelLogForm />} />
         <Route path="/edit/:id" element={<EditFuelLogRoute />} />
+        <Route path="/insight/:id" element={<FuelLogInsight />} />
         <Route path="/statistics" element={<StatisticsPage />} />
         <Route path="/receipt-loading" element={<ReceiptLoadingPage />} />
       </Routes>

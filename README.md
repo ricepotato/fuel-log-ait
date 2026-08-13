@@ -60,3 +60,21 @@ npx ait token add
 ```
 npx ait deploy
 ```
+
+토큰 관련 하위 명령을 관리합니다.
+
+```
+ait token
+```
+
+시크릿 토큰을 추가합니다.
+
+```
+ait token add [--api-key #0] [profile]
+```
+
+시크릿 토큰을 삭제합니다.
+
+```
+ait token remove [profile]
+```
