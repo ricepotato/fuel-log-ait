@@ -3,6 +3,17 @@ import { FuelLog } from "../types/fuelLog";
 const API_URL =
   "https://91p5i7lvpj.execute-api.ap-northeast-2.amazonaws.com/Prod";
 
+const CDN_DOMAIN = "d1ec5umvf9gnq4.cloudfront.net";
+const BUCKET = "fuel-log-receipt-sam-receipts";
+
+/** 운영 환경. getOperationalEnvironment() 의 반환값과 같아요. */
+export type OperationalEnv = "toss" | "sandbox";
+
+/** 사용자 데이터가 저장되는 S3 키. 사용자+환경 조합당 파일 1개예요. */
+function userDataKey(userId: string, env: OperationalEnv): string {
+  return `data/${env}/${userId}.json`;
+}
+
 export interface ReceiptAnalyzeResult {
   date: string;
   location: string;
@@ -69,13 +80,17 @@ export interface FuelLogUploadUrlResult {
 
 export async function getFuelLogsUploadUrl(
   userId: string,
+  env: OperationalEnv,
 ): Promise<FuelLogUploadUrlResult> {
   /**
    * 클라우드에 데이터를 업로드 하기 위한 s3 presigned url 을 얻습니다.
+   * env 는 필수이며, 서버는 이 값으로 data/<env>/<userId>.json 키를 서명합니다.
+   * env 가 없거나 "toss"/"sandbox" 가 아니면 400 이 반환됩니다.
    */
   const response = await fetch(`${API_URL}/receipt/data`, {
     method: "POST",
     headers: { "x-user-id": userId, "Content-Type": "application/json" },
+    body: JSON.stringify({ env }),
   });
   if (!response.ok) {
     throw new Error(`upload-url 요청 실패: ${response.status}`);
@@ -108,6 +123,7 @@ export async function uploadFuelLogs(
 
 export async function saveRemoteFuelLogs(
   userId: string,
+  env: OperationalEnv,
   fuelLogs: FuelLog[],
 ): Promise<boolean> {
   /**
@@ -116,7 +132,7 @@ export async function saveRemoteFuelLogs(
    */
   let uploadUrl: string;
   try {
-    ({ upload_url: uploadUrl } = await getFuelLogsUploadUrl(userId));
+    ({ upload_url: uploadUrl } = await getFuelLogsUploadUrl(userId, env));
   } catch (error) {
     console.warn(`saveRemoteFuelLogs failed. upload-url 발급 실패:`, error);
     return false;
@@ -125,15 +141,18 @@ export async function saveRemoteFuelLogs(
   return uploadFuelLogs(uploadUrl, fuelLogs);
 }
 
-export async function fetchRemoteFuelLogs(userId: string): Promise<FuelLog[]> {
+export async function fetchRemoteFuelLogs(
+  userId: string,
+  env: OperationalEnv,
+): Promise<FuelLog[]> {
   /**
    * 클라우드로부터 데이터를 읽음.
    * 데이터가 존재하지 않으면 빈 배열 반환.
    * 버킷에 ListBucket 권한이 없어 없는 키는 404 가 아닌 403 으로 내려온다.
    * CDN URL = https://<CloudFrontDomain>/<BucketName>/<key>
-    예: https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/integration-test-user.json
+    예: https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/sandbox/integration-test-user.json
    */
-  const url = `https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/${userId}.json`;
+  const url = `https://${CDN_DOMAIN}/${BUCKET}/${userDataKey(userId, env)}`;
   const response = await fetch(url);
   if (response.status === 404 || response.status === 403) {
     console.info(

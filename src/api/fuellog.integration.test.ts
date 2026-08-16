@@ -10,12 +10,14 @@ import { FuelLog } from "../types/fuelLog";
 // 네트워크가 필요하며, presigned url 발급만 수행하고 실제 업로드는 하지 않는다.
 const TEST_USER_ID =
   process.env.INTEGRATION_TEST_USER_ID ?? "integration-test-user";
+// 테스트 데이터가 운영(toss) 환경 키를 건드리지 않도록 sandbox 로 고정한다.
+const TEST_ENV = "sandbox" as const;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe("getFuelLogsUploadUrl", () => {
   it("userId로 S3 presigned upload url을 발급받는다", async () => {
-    const result = await getFuelLogsUploadUrl(TEST_USER_ID);
+    const result = await getFuelLogsUploadUrl(TEST_USER_ID, TEST_ENV);
 
     expect(typeof result.upload_url).toBe("string");
     expect(result.upload_url.startsWith("https://")).toBe(true);
@@ -37,13 +39,13 @@ describe("saveRemoteFuelLogs", () => {
       },
     ];
 
-    const saved = await saveRemoteFuelLogs(TEST_USER_ID, fuelLogs);
+    const saved = await saveRemoteFuelLogs(TEST_USER_ID, TEST_ENV, fuelLogs);
     expect(saved).toBe(true);
 
     // CloudFront가 S3 원본을 반영할 때까지 짧게 재시도한다.
     let fetched: FuelLog[] = [];
     for (let attempt = 0; attempt < 5; attempt++) {
-      fetched = await fetchRemoteFuelLogs(TEST_USER_ID);
+      fetched = await fetchRemoteFuelLogs(TEST_USER_ID, TEST_ENV);
       if (fetched.length > 0) break;
       await sleep(1000);
     }

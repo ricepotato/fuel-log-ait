@@ -127,7 +127,7 @@ export default function SettingsBottomSheet({
       console.warn("can't get getAnonymousKey");
       return;
     }
-    const remoteFuelLogs = await fetchRemoteFuelLogs(anonymousKey.hash);
+    const remoteFuelLogs = await fetchRemoteFuelLogs(anonymousKey.hash, env);
     if (remoteFuelLogs.length <= 0) {
       show({ text: "가져올 데이터가 없어요", duration: 2000 });
       return;

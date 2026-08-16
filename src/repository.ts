@@ -1,6 +1,9 @@
 import { Storage } from "@apps-in-toss/web-framework";
 import { FuelLog } from "./types/fuelLog";
-import { getAnonymousKey } from "@apps-in-toss/web-framework";
+import {
+  getAnonymousKey,
+  getOperationalEnvironment,
+} from "@apps-in-toss/web-framework";
 import { fetchRemoteFuelLogs, saveRemoteFuelLogs } from "./api/fuellog";
 
 const KEY = "fuel-logs";
@@ -70,11 +73,12 @@ export async function saveFuelLogRemote(
     return;
   }
 
+  const env = getOperationalEnvironment();
   const localFuelLogs = await getFuelLogs();
 
   let remoteFuelLogs: FuelLog[];
   try {
-    remoteFuelLogs = await fetchRemoteFuelLogs(anonymousKey.hash);
+    remoteFuelLogs = await fetchRemoteFuelLogs(anonymousKey.hash, env);
   } catch (error) {
     // remote 를 못 읽은 채로 올리면 다른 기기 기록을 지우게 되므로 건너뜁니다.
     // local 저장은 이미 끝난 상태라 다음 동기화 때 다시 시도됩니다.
@@ -88,7 +92,7 @@ export async function saveFuelLogRemote(
   ).filter((log) => !removedIds.includes(log.id));
 
   await Storage.setItem(KEY, JSON.stringify(mergedFuelLogs));
-  await saveRemoteFuelLogs(anonymousKey.hash, mergedFuelLogs);
+  await saveRemoteFuelLogs(anonymousKey.hash, env, mergedFuelLogs);
 }
 
 export async function mergeRemoteFuelLogs(remoteFuelLogs: FuelLog[]) {
@@ -105,5 +109,9 @@ export async function mergeRemoteFuelLogs(remoteFuelLogs: FuelLog[]) {
   if (!anonymousKey || anonymousKey === "ERROR") {
     return;
   }
-  await saveRemoteFuelLogs(anonymousKey.hash, mergedFuelLogs);
+  await saveRemoteFuelLogs(
+    anonymousKey.hash,
+    getOperationalEnvironment(),
+    mergedFuelLogs,
+  );
 }
