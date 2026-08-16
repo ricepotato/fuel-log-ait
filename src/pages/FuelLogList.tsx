@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ListRow, Tab } from "@toss/tds-mobile";
 import { useFuelLogFilter } from "../context/FuelLogFilterContext";
-import type { FuelLog } from "../types/fuelLog";
-import { getFuelLogs } from "../repository";
+import { useFuelLogs } from "../context/FuelLogContext";
 import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
 import { useToast } from "../hooks/useToast";
 
@@ -19,11 +18,7 @@ export function FuelLogList() {
     setSelectedYear,
     setSelectedMonthIndex,
   } = useFuelLogFilter();
-  const [logs, setLogs] = useState<FuelLog[]>([]);
-
-  useEffect(() => {
-    getFuelLogs().then(setLogs);
-  }, []);
+  const { logs } = useFuelLogs();
 
   useEffect(() => {
     if (state?.receiptError) {

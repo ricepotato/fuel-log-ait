@@ -1,16 +1,10 @@
 import { Button, Slider, TextField, Top } from "@toss/tds-mobile";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import { useToast } from "../hooks/useToast";
-import {
-  addFuelLog,
-  getFuelLogs,
-  removeFuelLog,
-  updateFuelLog,
-  saveFuelLogRemote,
-} from "../repository";
+import { useFuelLogs } from "../context/FuelLogContext";
 import type { FuelLog } from "../types/fuelLog";
 import type { ReceiptAnalyzeResult } from "../api/fuellog";
 
@@ -34,6 +28,7 @@ function toNumberString(raw: string): string {
 export function FuelLogForm({ initialData }: Props) {
   const navigate = useNavigate();
   const { show } = useToast();
+  const { logs, addLog, updateLog, removeLog } = useFuelLogs();
   const { state } = useLocation();
   const receipt: ReceiptAnalyzeResult | undefined = state?.receipt;
   const today = new Date().toISOString().split("T")[0];
@@ -57,35 +52,30 @@ export function FuelLogForm({ initialData }: Props) {
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 
-  const [frequentTotalPrices, setFrequentTotalPrices] = useState<number[]>([]);
   const [showTotalPricePopover, setShowTotalPricePopover] = useState(false);
-  const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const totalPriceFieldRef = useRef<HTMLDivElement>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  useEffect(() => {
-    getFuelLogs().then((logs) => {
-      const freq = new Map<number, number>();
-      for (const log of logs) {
-        if (log.totalPrice > 0) {
-          freq.set(log.totalPrice, (freq.get(log.totalPrice) ?? 0) + 1);
-        }
+  const frequentTotalPrices = useMemo(() => {
+    const freq = new Map<number, number>();
+    for (const log of logs) {
+      if (log.totalPrice > 0) {
+        freq.set(log.totalPrice, (freq.get(log.totalPrice) ?? 0) + 1);
       }
-      const top = [...freq.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([price]) => price);
-      setFrequentTotalPrices(top);
+    }
+    return [...freq.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([price]) => price);
+  }, [logs]);
 
-      const recentWithOdometer = logs
-        .filter((log) => log.odometer != null && log.id !== initialData?.id)
-        .sort((a, b) => (a.date > b.date ? -1 : 1))[0];
-      if (recentWithOdometer?.odometer != null) {
-        setLastOdometer(recentWithOdometer.odometer);
-      }
-    });
-  }, []);
+  const lastOdometer = useMemo(() => {
+    const recentWithOdometer = logs
+      .filter((log) => log.odometer != null && log.id !== initialData?.id)
+      .sort((a, b) => (a.date > b.date ? -1 : 1))[0];
+    return recentWithOdometer?.odometer ?? null;
+  }, [logs, initialData?.id]);
 
   useEffect(() => {
     if (!showTotalPricePopover) return;
@@ -107,13 +97,13 @@ export function FuelLogForm({ initialData }: Props) {
 
   const handleDelete = async () => {
     if (!initialData) return;
-    await removeFuelLog(initialData.id);
-    saveFuelLogRemote();
+    await removeLog(initialData.id);
     show({
       text: "주유 기록이 삭제됐어요",
       duration: 2000,
     });
-    navigate(-1);
+    // 삭제된 기록의 편집/인사이트 화면으로 돌아가지 않도록 목록으로 보내요.
+    navigate("/", { replace: true });
   };
 
   const handleSave = async () => {
@@ -131,8 +121,7 @@ export function FuelLogForm({ initialData }: Props) {
     };
     if (initialData) {
       console.log(`update: ${JSON.stringify(log)}`);
-      await updateFuelLog(log);
-      saveFuelLogRemote();
+      await updateLog(log);
       show({
         text: "주유 기록이 저장됐어요",
         duration: 2000,
@@ -142,12 +131,14 @@ export function FuelLogForm({ initialData }: Props) {
     }
 
     console.log(`add: ${JSON.stringify(log)}`);
-    await addFuelLog(log);
-    saveFuelLogRemote();
+    await addLog(log);
 
     // 새로 추가한 기록은 인사이트 화면에서 지난 기록과 비교해서 보여줘요
     if (log.pricePerLiter !== undefined) {
-      navigate(`/insight/${log.id}`, { replace: true });
+      navigate(`/insight/${log.id}`, {
+        replace: true,
+        preventScrollReset: false,
+      });
     } else {
       navigate("/", { replace: true });
     }

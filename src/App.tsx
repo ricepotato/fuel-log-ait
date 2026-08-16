@@ -6,22 +6,17 @@ import { FuelLogForm } from "./pages/FuelLogForm";
 import { FuelLogInsight } from "./pages/FuelLogInsight";
 import { FuelLogList } from "./pages/FuelLogList";
 import { ReceiptLoadingPage } from "./pages/ReceiptLoadingPage";
-import { getFuelLogById } from "./repository";
-import type { FuelLog } from "./types/fuelLog";
+import { useFuelLogs } from "./context/FuelLogContext";
 import SettingsBottomSheet from "./components/SettingsBottomSheet";
 import { StatisticsPage } from "./pages/StatisticsPage";
 
 function EditFuelLogRoute() {
   const { id } = useParams<{ id: string }>();
-  const [log, setLog] = useState<FuelLog | null | undefined>(undefined);
+  const { logs, loaded } = useFuelLogs();
 
-  useEffect(() => {
-    if (!id) return;
-    getFuelLogById(id).then((found) => setLog(found ?? null));
-  }, [id]);
-
-  if (log === undefined) return null;
-  if (log === null) return <Navigate to="/" replace />;
+  if (!loaded) return null;
+  const log = logs.find((item) => item.id === id);
+  if (log == null) return <Navigate to="/" replace />;
   return <FuelLogForm initialData={log} />;
 }
 

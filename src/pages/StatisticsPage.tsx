@@ -1,7 +1,6 @@
 import { Top } from "@toss/tds-mobile";
-import { useEffect, useState } from "react";
-import { getFuelLogs } from "../repository";
-import type { FuelLog } from "../types/fuelLog";
+import { useState } from "react";
+import { useFuelLogs } from "../context/FuelLogContext";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -56,12 +55,8 @@ function MonthlyBarChart({
 }
 
 export function StatisticsPage() {
-  const [logs, setLogs] = useState<FuelLog[]>([]);
+  const { logs } = useFuelLogs();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
-  useEffect(() => {
-    getFuelLogs().then(setLogs);
-  }, []);
 
   const yearLogs = logs.filter(
     (log) => new Date(log.date).getFullYear() === selectedYear,

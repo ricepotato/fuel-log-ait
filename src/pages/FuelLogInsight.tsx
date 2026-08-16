@@ -1,7 +1,7 @@
 import { Button, Top } from "@toss/tds-mobile";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { getFuelLogs } from "../repository";
+import { useFuelLogs } from "../context/FuelLogContext";
 import type { FuelLog } from "../types/fuelLog";
 
 /** 비교에 사용할 지난 주유 기록 개수 */
@@ -188,15 +188,11 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
 export function FuelLogInsight() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [logs, setLogs] = useState<FuelLog[] | null>(null);
+  const { logs, loaded } = useFuelLogs();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    getFuelLogs().then(setLogs);
-  }, []);
-
   const insight = useMemo(() => {
-    if (logs == null) return null;
+    if (!loaded) return null;
     const current = logs.find((log) => log.id === id);
     if (current == null) return null;
 
@@ -222,9 +218,9 @@ export function FuelLogInsight() {
           }));
 
     return { current, currentPrice, previous, points };
-  }, [logs, id]);
+  }, [logs, loaded, id]);
 
-  if (logs == null) return null;
+  if (!loaded) return null;
   if (insight == null) return <Navigate to="/" replace />;
 
   const { current, currentPrice, previous, points } = insight;

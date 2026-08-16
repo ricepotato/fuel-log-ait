@@ -2,7 +2,7 @@ import { getAnonymousKey, saveBase64Data } from "@apps-in-toss/web-framework";
 import { BottomSheet, ListRow } from "@toss/tds-mobile";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/useToast";
-import { clearFuelLogs, getFuelLogs, mergeRemoteFuelLogs } from "../repository";
+import { useFuelLogs } from "../context/FuelLogContext";
 import { getOperationalEnvironment } from "@apps-in-toss/web-framework";
 import { ConfirmDialog } from "@toss/tds-mobile";
 import { useState } from "react";
@@ -64,6 +64,7 @@ export default function SettingsBottomSheet({
   setOpen: (open: boolean) => void;
 }) {
   const { show } = useToast();
+  const { logs, clearLogs, mergeRemoteLogs } = useFuelLogs();
   const [openDataImportDialog, setOpenDataImportDialog] = useState(false);
   const [openDataDeleteDialog, setOpenDataDeleteDialog] = useState(false);
   const [pendingRemoteFuelLogs, setPendingRemoteFuelLogs] = useState<FuelLog[]>(
@@ -72,8 +73,7 @@ export default function SettingsBottomSheet({
   const navigate = useNavigate();
 
   async function exportToCsv() {
-    const logs = await getFuelLogs();
-    const rows = logs
+    const rows = [...logs]
       .sort((a, b) => (a.id > b.id ? -1 : 1))
       .map((log) => [
         log.id,
@@ -138,14 +138,16 @@ export default function SettingsBottomSheet({
   }
 
   async function confirmRemoteDataImport() {
-    await mergeRemoteFuelLogs(pendingRemoteFuelLogs);
+    await mergeRemoteLogs(pendingRemoteFuelLogs);
     setOpenDataImportDialog(false);
+    setOpen(false);
     show({ text: "데이터를 가져왔어요", duration: 2000 });
   }
 
   async function confirmDeleteAllData() {
-    await clearFuelLogs();
+    await clearLogs();
     setOpenDataDeleteDialog(false);
+    setOpen(false);
     show({ text: "로컬 데이터를 모두 삭제했어요", duration: 2000 });
   }
 
