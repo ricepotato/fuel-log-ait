@@ -8,6 +8,7 @@ import { FuelLogList } from "./pages/FuelLogList";
 import { ReceiptLoadingPage } from "./pages/ReceiptLoadingPage";
 import { useFuelLogs } from "./context/FuelLogContext";
 import SettingsBottomSheet from "./components/SettingsBottomSheet";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { StatisticsPage } from "./pages/StatisticsPage";
 
 function EditFuelLogRoute() {
@@ -44,6 +45,7 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<FuelLogList />} />
         <Route path="/add" element={<FuelLogForm />} />
