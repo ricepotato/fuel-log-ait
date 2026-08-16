@@ -136,6 +136,9 @@ export async function fetchRemoteFuelLogs(userId: string): Promise<FuelLog[]> {
   const url = `https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/${userId}.json`;
   const response = await fetch(url);
   if (response.status === 404 || response.status === 403) {
+    console.info(
+      `fetchRemoteFuelLogs: No data found for userId=${userId}, returning empty array.`,
+    );
     return [];
   }
   return await response.json();

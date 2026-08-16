@@ -9,6 +9,7 @@ import {
   getFuelLogs,
   removeFuelLog,
   updateFuelLog,
+  saveFuelLogRemote,
 } from "../repository";
 import type { FuelLog } from "../types/fuelLog";
 import type { ReceiptAnalyzeResult } from "../api/fuellog";
@@ -107,6 +108,7 @@ export function FuelLogForm({ initialData }: Props) {
   const handleDelete = async () => {
     if (!initialData) return;
     await removeFuelLog(initialData.id);
+    saveFuelLogRemote();
     show({
       text: "주유 기록이 삭제됐어요",
       duration: 2000,
@@ -130,6 +132,7 @@ export function FuelLogForm({ initialData }: Props) {
     if (initialData) {
       console.log(`update: ${JSON.stringify(log)}`);
       await updateFuelLog(log);
+      saveFuelLogRemote();
       show({
         text: "주유 기록이 저장됐어요",
         duration: 2000,
@@ -140,6 +143,7 @@ export function FuelLogForm({ initialData }: Props) {
 
     console.log(`add: ${JSON.stringify(log)}`);
     await addFuelLog(log);
+    saveFuelLogRemote();
 
     // 새로 추가한 기록은 인사이트 화면에서 지난 기록과 비교해서 보여줘요
     if (log.pricePerLiter !== undefined) {
