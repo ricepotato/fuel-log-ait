@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ListRow, Tab } from "@toss/tds-mobile";
 import { useFuelLogFilter } from "../context/FuelLogFilterContext";
 import { useFuelLogs } from "../context/FuelLogContext";
+import type { FuelLog } from "../types/fuelLog";
 import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
 import { useToast } from "../hooks/useToast";
 
@@ -38,10 +39,6 @@ export function FuelLogList() {
     })
     .sort((a, b) => (Number(a.id) > Number(b.id) ? -1 : 1)); // 최신순 정렬
 
-  const totalSpend = filtered.reduce((sum, log) => sum + log.totalPrice, 0);
-  const totalLiters = filtered.reduce((sum, log) => sum + (log.liters ?? 0), 0);
-  const hasAnyLiters = filtered.some((log) => log.liters != null);
-
   return (
     // 아래 floating button 공간 확보를 위한 padding-bottom
     <main style={{ paddingBottom: 90 }}>
@@ -65,13 +62,7 @@ export function FuelLogList() {
       </Tab>
 
       {/* Monthly summary */}
-      <MonthlySummary
-        selectedMonth={selectedMonth}
-        count={filtered.length}
-        totalSpend={totalSpend}
-        totalLiters={totalLiters}
-        hasAnyLiters={hasAnyLiters}
-      />
+      <MonthlySummary selectedMonth={selectedMonth} logs={filtered} />
 
       {/* Fuel log list */}
       {filtered.map((log, index) => {
@@ -122,17 +113,16 @@ export function FuelLogList() {
 
 function MonthlySummary({
   selectedMonth,
-  count,
-  totalSpend,
-  totalLiters,
-  hasAnyLiters,
+  logs,
 }: {
   selectedMonth: number;
-  count: number;
-  totalSpend: number;
-  totalLiters: number;
-  hasAnyLiters: boolean;
+  logs: FuelLog[];
 }) {
+  const count = logs.length;
+  const totalSpend = logs.reduce((sum, log) => sum + log.totalPrice, 0);
+  const totalLiters = logs.reduce((sum, log) => sum + (log.liters ?? 0), 0);
+  const hasAnyLiters = logs.some((log) => log.liters != null);
+
   if (count === 0) {
     return (
       <div
