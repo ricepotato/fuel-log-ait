@@ -49,6 +49,11 @@ export function FuelLogList() {
       <YearSelector
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
+        onToday={() => {
+          const today = new Date();
+          setSelectedYear(today.getFullYear());
+          setSelectedMonthIndex(today.getMonth());
+        }}
       />
       {/* Month tabs */}
       <Tab fluid onChange={(index) => setSelectedMonthIndex(index)}>
@@ -165,13 +170,16 @@ function MonthlySummary({
 function YearSelector({
   selectedYear,
   setSelectedYear,
+  onToday,
 }: {
   selectedYear: number;
   setSelectedYear: (year: number) => void;
+  onToday: () => void;
 }) {
   return (
     <div
       style={{
+        position: "relative",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -209,6 +217,24 @@ function YearSelector({
         }}
       >
         ›
+      </button>
+      <button
+        onClick={onToday}
+        style={{
+          position: "absolute",
+          right: 24,
+          background: "none",
+          border: "1px solid #E5E8EB",
+          borderRadius: 8,
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: 600,
+          color: "#4E5968",
+          padding: "6px 10px",
+          lineHeight: 1,
+        }}
+      >
+        이번 달
       </button>
     </div>
   );
