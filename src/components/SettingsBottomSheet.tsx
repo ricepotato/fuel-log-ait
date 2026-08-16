@@ -7,7 +7,6 @@ import { getOperationalEnvironment } from "@apps-in-toss/web-framework";
 import { ConfirmDialog } from "@toss/tds-mobile";
 import { useState } from "react";
 import { fetchRemoteFuelLogs } from "../api/fuellog";
-import { FuelLog } from "../types/fuelLog";
 
 const CSV_HEADERS = [
   "ID",
@@ -64,12 +63,9 @@ export default function SettingsBottomSheet({
   setOpen: (open: boolean) => void;
 }) {
   const { show } = useToast();
-  const { logs, clearLogs, mergeRemoteLogs } = useFuelLogs();
+  const { logs, clearLogs, reloadFromServer } = useFuelLogs();
   const [openDataImportDialog, setOpenDataImportDialog] = useState(false);
   const [openDataDeleteDialog, setOpenDataDeleteDialog] = useState(false);
-  const [pendingRemoteFuelLogs, setPendingRemoteFuelLogs] = useState<FuelLog[]>(
-    [],
-  );
   const navigate = useNavigate();
 
   async function exportToCsv() {
@@ -118,9 +114,8 @@ export default function SettingsBottomSheet({
 
   async function requestRemoteDataImport() {
     /**
-     * remote 데이터를 가져와 로컬 데이터와 합쳐 로컬,리모트 데이터를 동기화 합니다.
-     * remote 데이터를 가져와 데이터가 있는지 확인한 다음 dialog 를 띄웁니다.
-     * 사용자가 확인 버튼을 누르면 mergeRemoteFuelLogs 함수를 사용하여 데이터를 동기화 합니다.
+     * 서버에 저장된 기록이 있는지 확인한 다음 dialog 를 띄웁니다.
+     * 사용자가 확인 버튼을 누르면 서버 기록으로 이 기기의 목록을 맞춥니다.
      */
     const anonymousKey = await getAnonymousKey();
     if (!anonymousKey || anonymousKey === "ERROR") {
@@ -133,12 +128,11 @@ export default function SettingsBottomSheet({
       return;
     }
 
-    setPendingRemoteFuelLogs(remoteFuelLogs);
     setOpenDataImportDialog(true);
   }
 
   async function confirmRemoteDataImport() {
-    await mergeRemoteLogs(pendingRemoteFuelLogs);
+    await reloadFromServer();
     setOpenDataImportDialog(false);
     setOpen(false);
     show({ text: "데이터를 가져왔어요", duration: 2000 });
@@ -252,7 +246,7 @@ function RemoteDataLoadConfirmDialog({
       description={
         <ConfirmDialog.Description>
           {
-            "저장된 이전 데이터를 가져올게요.\n현재 기기의 데이터와 합쳐지며,\n기존 데이터는 삭제되지 않아요."
+            "서버에 저장된 주유 기록을 가져올게요.\n이 기기의 목록이 서버 기록과\n동일하게 맞춰져요."
           }
         </ConfirmDialog.Description>
       }

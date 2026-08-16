@@ -4,27 +4,43 @@ import {
   getAnonymousKey,
   getOperationalEnvironment,
 } from "@apps-in-toss/web-framework";
-import { fetchRemoteFuelLogs, saveRemoteFuelLogs } from "./api/fuellog";
+import { FuelLogApi } from "./api/fuellog";
 
 const KEY = "fuel-logs";
 
 /**
- * 두 목록을 ID 기준으로 합쳐 중복을 제거합니다.
- * 같은 ID 가 양쪽에 있으면 방금 편집한 값인 local 을 우선합니다.
+ * 서버가 기록의 원본이고, Storage 는 화면을 바로 그리기 위한 캐시예요.
+ * 캐시 함수(getFuelLogs, addFuelLog ...)는 로컬만 건드리고,
+ * 서버 반영은 syncFuelLog / reloadFuelLogsFromServer 가 담당해요.
  */
-function mergeFuelLogsById(
-  remoteFuelLogs: FuelLog[],
-  localFuelLogs: FuelLog[],
-): FuelLog[] {
-  const mergedById = new Map<string, FuelLog>();
-  for (const log of remoteFuelLogs) {
-    mergedById.set(log.id, log);
-  }
-  for (const log of localFuelLogs) {
-    mergedById.set(log.id, log);
-  }
-  return Array.from(mergedById.values());
+
+async function writeCache(fuelLogs: FuelLog[]): Promise<void> {
+  await Storage.setItem(KEY, JSON.stringify(fuelLogs));
 }
+
+/** 서버 클라이언트를 만들어요. 사용자 키를 얻지 못하면 null 이에요. */
+async function createFuelLogApi(): Promise<FuelLogApi | null> {
+  const anonymousKey = await getAnonymousKey();
+  if (!anonymousKey || anonymousKey === "ERROR") {
+    console.warn("createFuelLogApi: getAnonymousKey 를 얻지 못했어요.");
+    return null;
+  }
+  return new FuelLogApi(anonymousKey.hash, getOperationalEnvironment());
+}
+
+/** 서버 기록을 받아 캐시를 통째로 교체해요. 실패하면 캐시를 건드리지 않아요. */
+async function pullIntoCache(api: FuelLogApi): Promise<FuelLog[] | null> {
+  try {
+    const fuelLogs = await api.getFuelLogs();
+    await writeCache(fuelLogs);
+    return fuelLogs;
+  } catch (error) {
+    console.warn("서버 기록을 읽지 못했어요.", error);
+    return null;
+  }
+}
+
+// --- 로컬 캐시 ---
 
 export async function getFuelLogs(): Promise<FuelLog[]> {
   const raw = await Storage.getItem(KEY);
@@ -35,13 +51,12 @@ export async function getFuelLogs(): Promise<FuelLog[]> {
 export async function addFuelLog(item: FuelLog): Promise<void> {
   const logs = await getFuelLogs();
   logs.push(item);
-  await Storage.setItem(KEY, JSON.stringify(logs));
+  await writeCache(logs);
 }
 
 export async function updateFuelLog(item: FuelLog): Promise<void> {
   const logs = await getFuelLogs();
-  const updated = logs.map((log) => (log.id === item.id ? item : log));
-  await Storage.setItem(KEY, JSON.stringify(updated));
+  await writeCache(logs.map((log) => (log.id === item.id ? item : log)));
 }
 
 export async function getFuelLogById(id: string): Promise<FuelLog | undefined> {
@@ -51,67 +66,64 @@ export async function getFuelLogById(id: string): Promise<FuelLog | undefined> {
 
 export async function removeFuelLog(id: string): Promise<void> {
   const logs = await getFuelLogs();
-  const filtered = logs.filter((log) => log.id !== id);
-  await Storage.setItem(KEY, JSON.stringify(filtered));
+  await writeCache(logs.filter((log) => log.id !== id));
 }
 
+/**
+ * 로컬 캐시만 비웁니다(sandbox 전용 테스트 기능).
+ * 서버 기록은 그대로라 다음 동기화 때 다시 내려옵니다.
+ */
 export async function clearFuelLogs(): Promise<void> {
   await Storage.removeItem(KEY);
 }
 
-export async function saveFuelLogRemote(
-  removedIds: string[] = [],
-): Promise<void> {
-  /**
-   * local 데이터를 remote 와 병합해 동기화합니다.
-   * remote 를 그대로 덮어쓰면 다른 기기에서 저장한 기록이 사라지므로,
-   * mergeRemoteFuelLogs 와 같은 방식으로 ID 기준 병합한 뒤 양쪽에 저장합니다.
-   * removedIds 는 이번에 삭제한 기록이라, remote 에 남아 있어도 되살리지 않습니다.
-   */
-  const anonymousKey = await getAnonymousKey();
-  if (!anonymousKey || anonymousKey === "ERROR") {
-    return;
+// --- 서버 동기화 ---
+
+export type FuelLogChange =
+  | { type: "add"; log: FuelLog }
+  | { type: "update"; log: FuelLog }
+  | { type: "remove"; id: string };
+
+async function applyChange(
+  api: FuelLogApi,
+  change: FuelLogChange,
+): Promise<boolean> {
+  switch (change.type) {
+    case "add":
+      return api.addFuelLog(change.log);
+    case "update":
+      return api.updateFuelLog(change.log);
+    case "remove":
+      return api.deleteFuelLog(change.id);
   }
-
-  const env = getOperationalEnvironment();
-  const localFuelLogs = await getFuelLogs();
-
-  let remoteFuelLogs: FuelLog[];
-  try {
-    remoteFuelLogs = await fetchRemoteFuelLogs(anonymousKey.hash, env);
-  } catch (error) {
-    // remote 를 못 읽은 채로 올리면 다른 기기 기록을 지우게 되므로 건너뜁니다.
-    // local 저장은 이미 끝난 상태라 다음 동기화 때 다시 시도됩니다.
-    console.warn("saveFuelLogRemote: remote 데이터를 읽지 못했어요.", error);
-    return;
-  }
-
-  const mergedFuelLogs = mergeFuelLogsById(
-    remoteFuelLogs,
-    localFuelLogs,
-  ).filter((log) => !removedIds.includes(log.id));
-
-  await Storage.setItem(KEY, JSON.stringify(mergedFuelLogs));
-  await saveRemoteFuelLogs(anonymousKey.hash, env, mergedFuelLogs);
 }
 
-export async function mergeRemoteFuelLogs(remoteFuelLogs: FuelLog[]) {
-  /**
-   * remote 에서 가져온 데이터와 local 데이터를 병합합니다.
-   * ID 를 기준으로 중복을 제거하고 최종적으로 local 과 remote 에 데이터를 저장하여 동기화 합니다.
-   **/
-  const localFuelLogs = await getFuelLogs();
-  const mergedFuelLogs = mergeFuelLogsById(remoteFuelLogs, localFuelLogs);
+/**
+ * 변경 하나를 서버에 반영한 뒤, 서버 기준으로 캐시를 다시 맞춥니다.
+ * change 를 생략하면 서버에서 받아오기만 합니다(앱 시작 시 동기화).
+ *
+ * 서버에 반영하지 못했으면 캐시를 건드리지 않고 null 을 반환합니다.
+ * 이때 내려받아 덮어쓰면 방금 로컬에 저장한 변경이 사라지기 때문입니다.
+ */
+export async function syncFuelLog(
+  change?: FuelLogChange,
+): Promise<FuelLog[] | null> {
+  const api = await createFuelLogApi();
+  if (!api) return null;
 
-  await Storage.setItem(KEY, JSON.stringify(mergedFuelLogs));
-
-  const anonymousKey = await getAnonymousKey();
-  if (!anonymousKey || anonymousKey === "ERROR") {
-    return;
+  if (change && !(await applyChange(api, change))) {
+    return null;
   }
-  await saveRemoteFuelLogs(
-    anonymousKey.hash,
-    getOperationalEnvironment(),
-    mergedFuelLogs,
-  );
+
+  return pullIntoCache(api);
+}
+
+/**
+ * 서버 기록을 다시 받아 캐시를 갱신합니다(설정의 "데이터 가져오기").
+ * 서버가 원본이므로 캐시를 서버 내용으로 교체합니다.
+ */
+export async function reloadFuelLogsFromServer(): Promise<FuelLog[] | null> {
+  const api = await createFuelLogApi();
+  if (!api) return null;
+  return pullIntoCache(api);
 }
