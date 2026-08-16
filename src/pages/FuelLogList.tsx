@@ -46,48 +46,10 @@ export function FuelLogList() {
     // 아래 floating button 공간 확보를 위한 padding-bottom
     <main style={{ paddingBottom: 90 }}>
       {/* Year selector */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 24,
-          padding: "24px 0 12px",
-        }}
-      >
-        <button
-          onClick={() => setSelectedYear(selectedYear - 1)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 22,
-            color: "#4E5968",
-            padding: "0 4px",
-            lineHeight: 1,
-          }}
-        >
-          ‹
-        </button>
-        <span style={{ fontSize: 17, fontWeight: 600, color: "#191F28" }}>
-          {selectedYear}년
-        </span>
-        <button
-          onClick={() => setSelectedYear(selectedYear + 1)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 22,
-            color: "#4E5968",
-            padding: "0 4px",
-            lineHeight: 1,
-          }}
-        >
-          ›
-        </button>
-      </div>
-
+      <YearSelector
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+      />
       {/* Month tabs */}
       <Tab fluid onChange={(index) => setSelectedMonthIndex(index)}>
         {MONTHS.map((m, i) => (
@@ -98,34 +60,13 @@ export function FuelLogList() {
       </Tab>
 
       {/* Monthly summary */}
-      {filtered.length > 0 ? (
-        <div
-          style={{
-            padding: "14px 24px",
-            backgroundColor: "#F9FAFB",
-            borderBottom: "1px solid #E5E8EB",
-          }}
-        >
-          <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-            {selectedMonth}월 · {filtered.length}회 주유
-            {hasAnyLiters ? ` · 총 ${totalLiters.toFixed(1)}L` : ""}
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#191F28" }}>
-            {totalSpend.toLocaleString()}원
-          </div>
-        </div>
-      ) : (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "64px 0",
-            color: "#8B95A1",
-            fontSize: 15,
-          }}
-        >
-          이 달의 주유 기록이 없어요!
-        </div>
-      )}
+      <MonthlySummary
+        selectedMonth={selectedMonth}
+        count={filtered.length}
+        totalSpend={totalSpend}
+        totalLiters={totalLiters}
+        hasAnyLiters={hasAnyLiters}
+      />
 
       {/* Fuel log list */}
       {filtered.map((log, index) => {
@@ -171,6 +112,105 @@ export function FuelLogList() {
       <ReceiptScanButton />
       <AddFuelLogButton />
     </main>
+  );
+}
+
+function MonthlySummary({
+  selectedMonth,
+  count,
+  totalSpend,
+  totalLiters,
+  hasAnyLiters,
+}: {
+  selectedMonth: number;
+  count: number;
+  totalSpend: number;
+  totalLiters: number;
+  hasAnyLiters: boolean;
+}) {
+  if (count === 0) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "64px 0",
+          color: "#8B95A1",
+          fontSize: 15,
+        }}
+      >
+        이 달의 주유 기록이 없어요!
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        padding: "14px 24px",
+        backgroundColor: "#F9FAFB",
+        borderBottom: "1px solid #E5E8EB",
+      }}
+    >
+      <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
+        {selectedMonth}월 · {count}회 주유
+        {hasAnyLiters ? ` · 총 ${totalLiters.toFixed(1)}L` : ""}
+      </div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#191F28" }}>
+        {totalSpend.toLocaleString()}원
+      </div>
+    </div>
+  );
+}
+
+function YearSelector({
+  selectedYear,
+  setSelectedYear,
+}: {
+  selectedYear: number;
+  setSelectedYear: (year: number) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 24,
+        padding: "24px 0 12px",
+      }}
+    >
+      <button
+        onClick={() => setSelectedYear(selectedYear - 1)}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: 22,
+          color: "#4E5968",
+          padding: "0 4px",
+          lineHeight: 1,
+        }}
+      >
+        ‹
+      </button>
+      <span style={{ fontSize: 17, fontWeight: 600, color: "#191F28" }}>
+        {selectedYear}년
+      </span>
+      <button
+        onClick={() => setSelectedYear(selectedYear + 1)}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: 22,
+          color: "#4E5968",
+          padding: "0 4px",
+          lineHeight: 1,
+        }}
+      >
+        ›
+      </button>
+    </div>
   );
 }
 
