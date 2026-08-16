@@ -44,31 +44,43 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
     reload();
   }, [reload]);
 
+  // remote 동기화는 화면을 막지 않도록 백그라운드로 돌려요.
+  // 병합 결과가 local 에도 반영되므로 끝나면 다시 읽어요.
+  const syncRemote = useCallback(
+    (removedIds?: string[]) => {
+      saveFuelLogRemote(removedIds)
+        .then(reload)
+        .catch((error) => console.warn("remote 동기화에 실패했어요.", error));
+    },
+    [reload],
+  );
+
   const addLog = useCallback(
     async (log: FuelLog) => {
       await addFuelLog(log);
       await reload();
-      saveFuelLogRemote();
+      syncRemote();
     },
-    [reload],
+    [reload, syncRemote],
   );
 
   const updateLog = useCallback(
     async (log: FuelLog) => {
       await updateFuelLog(log);
       await reload();
-      saveFuelLogRemote();
+      syncRemote();
     },
-    [reload],
+    [reload, syncRemote],
   );
 
   const removeLog = useCallback(
     async (id: string) => {
       await removeFuelLog(id);
       await reload();
-      saveFuelLogRemote();
+      // 삭제한 기록이 remote 에서 다시 딸려오지 않도록 알려줘요.
+      syncRemote([id]);
     },
-    [reload],
+    [reload, syncRemote],
   );
 
   // 로컬 데이터만 지우는 테스트용 기능이라 remote 로는 반영하지 않아요.
