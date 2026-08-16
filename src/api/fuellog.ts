@@ -131,7 +131,7 @@ export async function fetchRemoteFuelLogs(userId: string): Promise<FuelLog[]> {
    * 데이터가 존재하지 않으면 빈 배열 반환.
    * 버킷에 ListBucket 권한이 없어 없는 키는 404 가 아닌 403 으로 내려온다.
    * CDN URL = https://<CloudFrontDomain>/<BucketName>/<key>
-    예: https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/test-user-001.json
+    예: https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/integration-test-user.json
    */
   const url = `https://d1ec5umvf9gnq4.cloudfront.net/fuel-log-receipt-sam-receipts/data/${userId}.json`;
   const response = await fetch(url);
