@@ -40,6 +40,49 @@ async function pullIntoCache(api: FuelLogApi): Promise<FuelLog[] | null> {
   }
 }
 
+/**
+ * 로컬 캐시에만 있고 서버엔 없는 기록을 서버에 올려요.
+ * 오프라인 상태로 기록을 추가했다가 서버 반영이 실패한 경우, 그 기록이
+ * 캐시에만 남아 있다가 다음 pull 때 통째로 사라지는 걸 막기 위함이에요.
+ * 다른 기기에서 지운 기록이 이 기기 캐시에 아직 남아 있다면 되살아날 수
+ * 있는데, 이 앱은 삭제 여부를 서버에 기록해두지 않아서(tombstone 없음)
+ * 지금 구조로는 구분할 방법이 없어요.
+ */
+async function pushLocalOnlyFuelLogs(
+  api: FuelLogApi,
+  serverFuelLogs: FuelLog[],
+): Promise<void> {
+  const localFuelLogs = await getFuelLogs();
+  const serverIds = new Set(serverFuelLogs.map((log) => log.id));
+  const localOnlyFuelLogs = localFuelLogs.filter(
+    (log) => !serverIds.has(log.id),
+  );
+
+  for (const log of localOnlyFuelLogs) {
+    if (!(await api.addFuelLog(log))) {
+      console.warn(`로컬 전용 기록을 서버에 올리지 못했어요: ${log.id}`);
+    }
+  }
+}
+
+/**
+ * 서버 기록을 받아오되, 그 전에 로컬에만 있는 기록을 먼저 서버로 올려요.
+ * 앱을 시작할 때(변경 사항 없이 하는 동기화)만 필요한 처리라 별도 경로로 뒀어요.
+ */
+async function reconcileWithServer(api: FuelLogApi): Promise<FuelLog[] | null> {
+  let serverFuelLogs: FuelLog[];
+  try {
+    serverFuelLogs = await api.getFuelLogs();
+  } catch (error) {
+    console.warn("서버 기록을 읽지 못했어요.", error);
+    return null;
+  }
+
+  await pushLocalOnlyFuelLogs(api, serverFuelLogs);
+
+  return pullIntoCache(api);
+}
+
 // --- 로컬 캐시 ---
 
 export async function getFuelLogs(): Promise<FuelLog[]> {
@@ -100,7 +143,8 @@ async function applyChange(
 
 /**
  * 변경 하나를 서버에 반영한 뒤, 서버 기준으로 캐시를 다시 맞춥니다.
- * change 를 생략하면 서버에서 받아오기만 합니다(앱 시작 시 동기화).
+ * change 를 생략하면 앱 시작 시 동기화로 간주해, 오프라인 등으로 서버에
+ * 아직 반영되지 못한 채 캐시에만 남아 있는 기록을 먼저 서버로 올린 뒤 받아옵니다.
  *
  * 서버에 반영하지 못했으면 캐시를 건드리지 않고 null 을 반환합니다.
  * 이때 내려받아 덮어쓰면 방금 로컬에 저장한 변경이 사라지기 때문입니다.
@@ -111,7 +155,11 @@ export async function syncFuelLog(
   const api = await createFuelLogApi();
   if (!api) return null;
 
-  if (change && !(await applyChange(api, change))) {
+  if (!change) {
+    return reconcileWithServer(api);
+  }
+
+  if (!(await applyChange(api, change))) {
     return null;
   }
 
