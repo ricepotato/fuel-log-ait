@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "and:forward": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:5173 tcp:5173"
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "^2.6.1",
