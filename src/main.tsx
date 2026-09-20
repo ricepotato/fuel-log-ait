@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import config from "../granite.config.ts";
+import config from "../apps-in-toss.config.ts";
 import App from "./App.tsx";
 import { FuelLogFilterProvider } from "./context/FuelLogFilterContext.tsx";
 import { FuelLogProvider } from "./context/FuelLogContext.tsx";
