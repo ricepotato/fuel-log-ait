@@ -1,7 +1,5 @@
+import { Device } from "@apps-in-toss/web-framework";
 import { useCallback, useState } from "react";
-import { usePermissionGate } from "./usePermissionGate";
-
-import { fetchAlbumPhotos } from "@apps-in-toss/web-framework";
 import { useToast } from "../hooks/useToast";
 
 export interface ImageState {
@@ -16,17 +14,14 @@ interface UseAlbumPhotosProps {
 export function useAlbumPhotos({ base64 = false }: UseAlbumPhotosProps) {
   const { show } = useToast();
   const [albumPhotos, setAlbumPhotos] = useState<ImageState[]>([]);
-  const permissionGate = usePermissionGate({
-    getPermission: () => fetchAlbumPhotos.getPermission(),
-    openPermissionDialog: () => fetchAlbumPhotos.openPermissionDialog(),
-    onPermissionRequested: (status) => console.log(`권한 요청 결과: ${status}`),
-  });
 
   const loadPhotos = useCallback(async () => {
     try {
-      const response = await permissionGate.ensureAndRun(() =>
-        fetchAlbumPhotos({ maxWidth: 1000, base64 }),
-      );
+      const response = await Device.getAlbumItems({
+        types: ["PHOTO"],
+        maxCount: 5,
+        base64: true,
+      });
 
       if (!response) {
         return;

@@ -1,11 +1,8 @@
-import {
-  openCamera,
-  OpenCameraPermissionError,
-} from "@apps-in-toss/web-framework";
 import { BottomSheet, ListRow } from "@toss/tds-mobile";
 import { useAlbumPhotos } from "../hooks/useAlbumPhotos";
 import { useToast } from "../hooks/useToast";
 import { useEffect } from "react";
+import { Device, OpenCameraPermissionError } from "@apps-in-toss/web-framework";
 
 interface Props {
   open: boolean;
@@ -26,7 +23,7 @@ export default function ReceiptScanBottomSheet({
   async function handleCamera() {
     onClose();
     try {
-      const result = await openCamera({ base64: true });
+      const result = await Device.openCamera({ base64: true });
       onImageSelected(result.dataUri);
     } catch (error) {
       if (error instanceof OpenCameraPermissionError) {
