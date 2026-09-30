@@ -1,6 +1,6 @@
+import { User } from "@apps-in-toss/web-framework";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getAnonymousKey } from "@apps-in-toss/web-framework";
 import { analyzeReceipt } from "../api/fuellog";
 import { useToast } from "../hooks/useToast";
 
@@ -24,13 +24,9 @@ export function ReceiptLoadingPage() {
     let cancelled = false;
 
     (async () => {
-      const anonymousKey = await getAnonymousKey();
-      if (cancelled) return;
-      if (!anonymousKey || anonymousKey === "ERROR") {
-        navigate("/", { replace: true });
-        return;
-      }
       try {
+        if (cancelled) return;
+        const anonymousKey = await User.getAnonymousKey();
         const result = await analyzeReceipt(
           anonymousKey.hash,
           base64,
@@ -40,7 +36,9 @@ export function ReceiptLoadingPage() {
           show({ text: "영수증을 인식했어요", duration: 2000 });
           navigate("/add", { replace: true, state: { receipt: result } });
         }
-      } catch {
+      } catch (e) {
+        console.error(`Error: ${e}`);
+        show({ text: "영수증 분석에 실패했어요", duration: 2000 });
         if (!cancelled) {
           navigate("/", { replace: true, state: { receiptError: true } });
         }
@@ -80,7 +78,9 @@ export function ReceiptLoadingPage() {
         }}
       />
       <div style={{ textAlign: "center" }}>
-        <p style={{ fontSize: 17, fontWeight: 600, color: "#191F28", margin: 0 }}>
+        <p
+          style={{ fontSize: 17, fontWeight: 600, color: "#191F28", margin: 0 }}
+        >
           영수증을 분석하고 있어요
         </p>
         <p style={{ fontSize: 14, color: "#8B95A1", margin: "8px 0 0" }}>

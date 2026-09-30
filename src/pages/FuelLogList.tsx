@@ -1,18 +1,15 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { ListRow, Tab } from "@toss/tds-mobile";
-import { useFuelLogFilter } from "../context/FuelLogFilterContext";
-import { useFuelLogs } from "../context/FuelLogContext";
-import type { FuelLog } from "../types/fuelLog";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
-import { useToast } from "../hooks/useToast";
+import { useFuelLogs } from "../context/FuelLogContext";
+import { useFuelLogFilter } from "../context/FuelLogFilterContext";
+import type { FuelLog } from "../types/fuelLog";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 export function FuelLogList() {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const { show } = useToast();
   const {
     selectedYear,
     selectedMonthIndex,
@@ -20,13 +17,6 @@ export function FuelLogList() {
     setSelectedMonthIndex,
   } = useFuelLogFilter();
   const { logs } = useFuelLogs();
-
-  useEffect(() => {
-    if (state?.receiptError) {
-      show({ text: "영수증 분석에 실패했어요", duration: 2000 });
-      navigate("/", { replace: true, state: {} });
-    }
-  }, [state?.receiptError]);
 
   const selectedMonth = MONTHS[selectedMonthIndex];
 
@@ -239,7 +229,7 @@ function ReceiptScanButton() {
     const header = commaIndex !== -1 ? dataUri.slice(0, commaIndex) : "";
     const base64 = commaIndex !== -1 ? dataUri.slice(commaIndex + 1) : dataUri;
     const contentType = header.match(/:(.*?);/)?.[1] ?? "image/jpeg";
-    console.log(contentType);
+    console.log(`handleImageSelected ContentType: ${contentType}`);
     navigate("/receipt-loading", { state: { base64, contentType } });
   }
 

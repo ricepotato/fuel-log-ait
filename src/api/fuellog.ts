@@ -44,12 +44,12 @@ export async function analyzeReceipt(
     throw new Error(`upload-url 요청 실패: ${uploadUrlResp.status}`);
   }
   const { upload_url, key } = await uploadUrlResp.json();
-
   const uploadResp = await fetch(upload_url, {
     method: "PUT",
     headers: { "Content-Type": uploadContentType },
     body: blob,
   });
+  console.debug(`[fetch] upload response status: ${uploadResp.status}`);
   if (!uploadResp.ok) {
     throw new Error(`S3 업로드 실패: ${uploadResp.status}`);
   }
