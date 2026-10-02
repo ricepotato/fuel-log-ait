@@ -10,6 +10,7 @@ import { useFuelLogs } from "./context/FuelLogContext";
 import SettingsBottomSheet from "./components/SettingsBottomSheet";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { StatisticsPage } from "./pages/StatisticsPage";
+import { DataExportPage } from "./pages/DataExportPage";
 import { TossAds } from "@apps-in-toss/web-framework";
 
 function EditFuelLogRoute() {
@@ -64,6 +65,7 @@ function App() {
         <Route path="/edit/:id" element={<EditFuelLogRoute />} />
         <Route path="/insight/:id" element={<FuelLogInsight />} />
         <Route path="/statistics" element={<StatisticsPage />} />
+        <Route path="/export" element={<DataExportPage />} />
         <Route path="/receipt-loading" element={<ReceiptLoadingPage />} />
       </Routes>
       <SettingsBottomSheet open={showSettings} setOpen={setShowSettings} />
