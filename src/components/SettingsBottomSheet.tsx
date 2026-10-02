@@ -1,12 +1,10 @@
-import { getAnonymousKey, saveBase64Data } from "@apps-in-toss/web-framework";
-import { BottomSheet, ListRow } from "@toss/tds-mobile";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "../hooks/useToast";
-import { useFuelLogs } from "../context/FuelLogContext";
-import { getOperationalEnvironment } from "@apps-in-toss/web-framework";
-import { ConfirmDialog } from "@toss/tds-mobile";
+import { Environment, File, User } from "@apps-in-toss/web-framework";
+import { BottomSheet, ConfirmDialog, ListRow } from "@toss/tds-mobile";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchRemoteFuelLogs } from "../api/fuellog";
+import { useFuelLogs } from "../context/FuelLogContext";
+import { useToast } from "../hooks/useToast";
 
 const CSV_HEADERS = [
   "ID",
@@ -18,8 +16,6 @@ const CSV_HEADERS = [
   "누적주행거리(km)",
   "연료잔량(%)",
 ];
-
-const env = getOperationalEnvironment();
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -43,7 +39,7 @@ async function handleSaveBase64Data({
   mimeType: string;
 }) {
   try {
-    await saveBase64Data({
+    await File.saveBase64({
       data,
       fileName,
       mimeType,
@@ -117,12 +113,11 @@ export default function SettingsBottomSheet({
      * 서버에 저장된 기록이 있는지 확인한 다음 dialog 를 띄웁니다.
      * 사용자가 확인 버튼을 누르면 서버 기록으로 이 기기의 목록을 맞춥니다.
      */
-    const anonymousKey = await getAnonymousKey();
-    if (!anonymousKey || anonymousKey === "ERROR") {
-      console.warn("can't get getAnonymousKey");
-      return;
-    }
-    const remoteFuelLogs = await fetchRemoteFuelLogs(anonymousKey.hash, env);
+    const anonymousKey = await User.getAnonymousKey();
+    const remoteFuelLogs = await fetchRemoteFuelLogs(
+      anonymousKey.hash,
+      Environment.environment,
+    );
     if (remoteFuelLogs.length <= 0) {
       show({ text: "가져올 데이터가 없어요", duration: 2000 });
       return;
@@ -170,7 +165,7 @@ export default function SettingsBottomSheet({
               requestRemoteDataImport();
             }}
           />
-          {env === "sandbox" ? (
+          {Environment.environment === "sandbox" ? (
             <ListRow
               contents={
                 <ListRow.Texts

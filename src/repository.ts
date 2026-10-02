@@ -1,10 +1,6 @@
-import { Storage } from "@apps-in-toss/web-framework";
-import { FuelLog } from "./types/fuelLog";
-import {
-  getAnonymousKey,
-  getOperationalEnvironment,
-} from "@apps-in-toss/web-framework";
+import { Environment, Storage, User } from "@apps-in-toss/web-framework";
 import { FuelLogApi } from "./api/fuellog";
+import { FuelLog } from "./types/fuelLog";
 
 const KEY = "fuel-logs";
 
@@ -20,12 +16,8 @@ async function writeCache(fuelLogs: FuelLog[]): Promise<void> {
 
 /** 서버 클라이언트를 만들어요. 사용자 키를 얻지 못하면 null 이에요. */
 async function createFuelLogApi(): Promise<FuelLogApi | null> {
-  const anonymousKey = await getAnonymousKey();
-  if (!anonymousKey || anonymousKey === "ERROR") {
-    console.warn("createFuelLogApi: getAnonymousKey 를 얻지 못했어요.");
-    return null;
-  }
-  return new FuelLogApi(anonymousKey.hash, getOperationalEnvironment());
+  const anonymousKey = await User.getAnonymousKey();
+  return new FuelLogApi(anonymousKey.hash, Environment.environment);
 }
 
 /** 서버 기록을 받아 캐시를 통째로 교체해요. 실패하면 캐시를 건드리지 않아요. */

@@ -10,6 +10,7 @@ import { useFuelLogs } from "./context/FuelLogContext";
 import SettingsBottomSheet from "./components/SettingsBottomSheet";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { StatisticsPage } from "./pages/StatisticsPage";
+import { TossAds } from "@apps-in-toss/web-framework";
 
 function EditFuelLogRoute() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,17 @@ function EditFuelLogRoute() {
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    if (TossAds.initialize.isSupported()) {
+      TossAds.initialize({
+        callbacks: {
+          onInitialized: () => console.log("SDK 준비 완료"),
+        },
+      });
+    }
+  }, []);
+
   useEffect(() => {
     partner.addAccessoryButton({
       id: "setting",

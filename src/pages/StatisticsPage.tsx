@@ -1,5 +1,7 @@
-import { Top } from "@toss/tds-mobile";
+import { Button, Top } from "@toss/tds-mobile";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BannerAdComponent } from "../components/AdBanner";
 import { useFuelLogs } from "../context/FuelLogContext";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -55,6 +57,7 @@ function MonthlyBarChart({
 }
 
 export function StatisticsPage() {
+  const navigate = useNavigate();
   const { logs } = useFuelLogs();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -81,219 +84,267 @@ export function StatisticsPage() {
   const peakMonthCost = monthlyData[peakMonthIndex];
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#FFFFFF",
-        padding: "24px 0",
-      }}
-    >
-      {/* Header */}
-      <Top
-        upperGap={0}
-        lowerGap={0}
-        title={<Top.TitleParagraph size={28}>통계 보기</Top.TitleParagraph>}
-      />
-
-      {/* Year selector */}
-      <div
+    <>
+      <main
         style={{
+          minHeight: "100vh",
+          backgroundColor: "#FFFFFF",
+          padding: "24px 0",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          flexDirection: "column",
           gap: 24,
-          padding: "24px 0 20px",
         }}
       >
-        <button
-          onClick={() => setSelectedYear(selectedYear - 1)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 22,
-            color: "#4E5968",
-            padding: "0 4px",
-            lineHeight: 1,
-          }}
-        >
-          ‹
-        </button>
-        <span style={{ fontSize: 17, fontWeight: 600, color: "#191F28" }}>
-          {selectedYear}년
-        </span>
-        <button
-          onClick={() => setSelectedYear(selectedYear + 1)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 22,
-            color: "#4E5968",
-            padding: "0 4px",
-            lineHeight: 1,
-          }}
-        >
-          ›
-        </button>
-      </div>
+        {/* Header */}
+        <Top
+          upperGap={0}
+          lowerGap={0}
+          title={<Top.TitleParagraph size={28}>통계 보기</Top.TitleParagraph>}
+        />
 
-      {/* Summary cards */}
-      <div style={{ padding: "0 20px 24px" }}>
+        {/* Year selector */}
         <div
           style={{
-            backgroundColor: "#F9FAFB",
-            borderRadius: 16,
-            padding: "20px 20px 4px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 24,
           }}
         >
+          <button
+            onClick={() => setSelectedYear(selectedYear - 1)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 22,
+              color: "#4E5968",
+              padding: "0 4px",
+              lineHeight: 1,
+            }}
+          >
+            ‹
+          </button>
+          <span style={{ fontSize: 17, fontWeight: 600, color: "#191F28" }}>
+            {selectedYear}년
+          </span>
+          <button
+            onClick={() => setSelectedYear(selectedYear + 1)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 22,
+              color: "#4E5968",
+              padding: "0 4px",
+              lineHeight: 1,
+            }}
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Summary cards */}
+        <div style={{ padding: "0 20px" }}>
           <div
             style={{
+              backgroundColor: "#F9FAFB",
+              borderRadius: 16,
+              padding: 20,
               display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 20,
+              flexDirection: "column",
+              gap: 20,
             }}
           >
-            <div>
-              <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-                연간 총 주유비
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>
+                  연간 총 주유비
+                </div>
+                <div
+                  style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}
+                >
+                  {totalYearCost.toLocaleString()}원
+                </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}>
-                {totalYearCost.toLocaleString()}원
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-                주유 횟수
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}>
-                {refuelCount}회
-              </div>
-            </div>
-          </div>
-
-          {totalYearLiters > 0 && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-                총 주유량
-              </div>
-              <div style={{ fontSize: 20, fontWeight: 600, color: "#191F28" }}>
-                {totalYearLiters.toFixed(1)}L
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Monthly chart */}
-      <div style={{ padding: "0 20px 32px" }}>
-        <div
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#191F28",
-            marginBottom: 16,
-          }}
-        >
-          월별 주유비
-        </div>
-
-        {refuelCount === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "48px 0",
-              color: "#8B95A1",
-              fontSize: 15,
-            }}
-          >
-            이 해의 주유 기록이 없어요
-          </div>
-        ) : (
-          <>
-            <div style={{ padding: "0 4px" }}>
-              <MonthlyBarChart data={monthlyData} maxValue={maxMonthlyValue} />
-            </div>
-
-            {peakMonthCost > 0 && (
               <div
                 style={{
-                  marginTop: 16,
-                  padding: "14px 16px",
-                  backgroundColor: "#EFF6FF",
-                  borderRadius: 12,
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  flexDirection: "column",
+                  gap: 4,
+                  textAlign: "right",
                 }}
               >
-                <span style={{ fontSize: 13, color: "#3182F6" }}>
-                  지출이 가장 많은 달
-                </span>
-                <span
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: "#3182F6",
-                  }}
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>주유 횟수</div>
+                <div
+                  style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}
                 >
-                  {peakMonthIndex + 1}월 · {peakMonthCost.toLocaleString()}원
-                </span>
+                  {refuelCount}회
+                </div>
+              </div>
+            </div>
+
+            {totalYearLiters > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>총 주유량</div>
+                <div
+                  style={{ fontSize: 20, fontWeight: 600, color: "#191F28" }}
+                >
+                  {totalYearLiters.toFixed(1)}L
+                </div>
               </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </div>
 
-      {/* Monthly breakdown list */}
-      {refuelCount > 0 && (
-        <div style={{ padding: "0 20px 40px" }}>
+        {/* Monthly chart */}
+        <div
+          style={{
+            padding: "0 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
           <div
             style={{
               fontSize: 15,
               fontWeight: 600,
               color: "#191F28",
-              marginBottom: 12,
             }}
           >
-            월별 상세
+            월별 주유비
           </div>
-          {MONTHS.filter((m) => monthlyData[m - 1] > 0).map((m) => {
-            const cost = monthlyData[m - 1];
-            const count = yearLogs.filter(
-              (log) => new Date(log.date).getMonth() + 1 === m,
-            ).length;
-            return (
-              <div
-                key={m}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "12px 0",
-                  borderBottom: "1px solid #F2F4F6",
-                }}
-              >
-                <span style={{ fontSize: 15, color: "#4E5968" }}>{m}월</span>
-                <div style={{ textAlign: "right" }}>
-                  <div
+
+          {refuelCount === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "48px 0",
+                color: "#8B95A1",
+                fontSize: 15,
+              }}
+            >
+              이 해의 주유 기록이 없어요
+            </div>
+          ) : (
+            <>
+              <div style={{ padding: "0 4px" }}>
+                <MonthlyBarChart
+                  data={monthlyData}
+                  maxValue={maxMonthlyValue}
+                />
+              </div>
+
+              {peakMonthCost > 0 && (
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    backgroundColor: "#EFF6FF",
+                    borderRadius: 12,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ fontSize: 13, color: "#3182F6" }}>
+                    지출이 가장 많은 달
+                  </span>
+                  <span
                     style={{
                       fontSize: 15,
                       fontWeight: 600,
-                      color: "#191F28",
+                      color: "#3182F6",
                     }}
                   >
-                    {cost.toLocaleString()}원
-                  </div>
-                  <div style={{ fontSize: 12, color: "#8B95A1" }}>
-                    {count}회 주유
-                  </div>
+                    {peakMonthIndex + 1}월 · {peakMonthCost.toLocaleString()}원
+                  </span>
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </>
+          )}
         </div>
-      )}
-    </main>
+
+        {/* Monthly breakdown list */}
+        {refuelCount > 0 && (
+          <div
+            style={{
+              padding: "0 20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: "#191F28",
+              }}
+            >
+              월별 상세
+            </div>
+            <div>
+              {MONTHS.filter((m) => monthlyData[m - 1] > 0).map((m) => {
+                const cost = monthlyData[m - 1];
+                const count = yearLogs.filter(
+                  (log) => new Date(log.date).getMonth() + 1 === m,
+                ).length;
+                return (
+                  <div
+                    key={m}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "12px 0",
+                      borderBottom: "1px solid #F2F4F6",
+                    }}
+                  >
+                    <span style={{ fontSize: 15, color: "#4E5968" }}>
+                      {m}월
+                    </span>
+                    <div style={{ textAlign: "right" }}>
+                      <div
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 600,
+                          color: "#191F28",
+                        }}
+                      >
+                        {cost.toLocaleString()}원
+                      </div>
+                      <div style={{ fontSize: 12, color: "#8B95A1" }}>
+                        {count}회 주유
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div style={{ padding: "0 20px" }}>
+          <Button
+            color="primary"
+            variant="fill"
+            style={{ width: "100%" }}
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            홈 화면으로 돌아가기
+          </Button>
+        </div>
+      </main>
+      <footer>
+        <BannerAdComponent />
+      </footer>
+    </>
   );
 }
