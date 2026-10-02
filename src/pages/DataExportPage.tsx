@@ -109,7 +109,7 @@ export function DataExportPage() {
         <main
           style={{
             backgroundColor: "#FFFFFF",
-            padding: "24px 0",
+            padding: "24px 0 120px",
             display: "flex",
             flexDirection: "column",
             gap: 24,
