@@ -100,99 +100,114 @@ export function DataExportPage() {
 
   return (
     <>
-      <main
+      <div
         style={{
-          minHeight: "100vh",
-          backgroundColor: "#FFFFFF",
-          padding: "24px 0",
-          display: "flex",
-          flexDirection: "column",
-          gap: 24,
+          position: "relative",
+          height: "100vh",
         }}
       >
-        {/* Header */}
-        <Top
-          upperGap={0}
-          lowerGap={0}
-          title={
-            <Top.TitleParagraph size={28}>데이터 내보내기</Top.TitleParagraph>
-          }
-          subtitleBottom={
-            <Top.SubtitleParagraph size={17}>
-              아래 정보를 확인하고 내보내기를 눌러주세요
-            </Top.SubtitleParagraph>
-          }
-        />
+        <main
+          style={{
+            backgroundColor: "#FFFFFF",
+            padding: "24px 0",
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+          }}
+        >
+          {/* Header */}
+          <Top
+            upperGap={0}
+            lowerGap={0}
+            title={
+              <Top.TitleParagraph size={28}>데이터 내보내기</Top.TitleParagraph>
+            }
+            subtitleBottom={
+              <Top.SubtitleParagraph size={17}>
+                아래 정보를 확인하고 내보내기를 눌러주세요
+              </Top.SubtitleParagraph>
+            }
+          />
 
-        {/* Summary */}
-        <div style={{ padding: "0 20px" }}>
-          <div
-            style={{
-              backgroundColor: "#F9FAFB",
-              borderRadius: 16,
-              padding: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 20,
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ fontSize: 13, color: "#8B95A1" }}>
-                내보낼 주유 기록
+          {/* Summary */}
+          <div style={{ padding: "0 20px" }}>
+            <div
+              style={{
+                backgroundColor: "#F9FAFB",
+                borderRadius: 16,
+                padding: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 20,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>
+                  내보낼 주유 기록
+                </div>
+                <div
+                  style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}
+                >
+                  {logs.length.toLocaleString()}개
+                </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}>
-                {logs.length.toLocaleString()}개
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ fontSize: 13, color: "#8B95A1" }}>파일 이름</div>
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#191F28",
-                  wordBreak: "break-all",
-                }}
-              >
-                {fileName}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>파일 이름</div>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "#191F28",
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {fileName}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          style={{
-            padding: "0 20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          <Button
-            color="primary"
-            variant="fill"
-            style={{ width: "100%" }}
-            disabled={logs.length === 0}
-            loading={exporting}
-            onClick={exportToCsv}
-          >
-            {logs.length === 0 ? "내보낼 기록이 없어요" : "CSV로 내보내기"}
-          </Button>
-          <Button
-            color="dark"
-            variant="weak"
-            style={{ width: "100%" }}
-            onClick={() => {
-              navigate("/");
+          <div
+            style={{
+              padding: "0 20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
             }}
           >
-            홈 화면으로 돌아가기
-          </Button>
-        </div>
-      </main>
-      <footer>
-        <BannerAdComponent />
-      </footer>
+            <Button
+              color="primary"
+              variant="fill"
+              style={{ width: "100%" }}
+              disabled={logs.length === 0}
+              loading={exporting}
+              onClick={exportToCsv}
+            >
+              {logs.length === 0 ? "내보낼 기록이 없어요" : "CSV로 내보내기"}
+            </Button>
+            <Button
+              color="dark"
+              variant="weak"
+              style={{ width: "100%" }}
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              홈 화면으로 돌아가기
+            </Button>
+          </div>
+        </main>
+        <footer
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            width: "100%",
+          }}
+        >
+          <BannerAdComponent />
+        </footer>
+      </div>
     </>
   );
 }

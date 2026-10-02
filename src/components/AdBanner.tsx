@@ -48,5 +48,7 @@ export function BannerAdComponent() {
   }, [isInitialized, adGroupId, attachBanner]);
 
   // 고정형 배너: width 100% + height 96px
-  return <div ref={containerRef} style={{ width: "100%", height: "96px" }} />;
+  return (
+    <div ref={containerRef} style={{ width: "100%", minHeight: "96px" }} />
+  );
 }

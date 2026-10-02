@@ -84,10 +84,9 @@ export function StatisticsPage() {
   const peakMonthCost = monthlyData[peakMonthIndex];
 
   return (
-    <>
+    <div style={{ position: "relative", height: "100vh" }}>
       <main
         style={{
-          minHeight: "100vh",
           backgroundColor: "#FFFFFF",
           padding: "24px 0",
           display: "flex",
@@ -345,6 +344,6 @@ export function StatisticsPage() {
       <footer>
         <BannerAdComponent />
       </footer>
-    </>
+    </div>
   );
 }
