@@ -2,6 +2,7 @@ import { Button, Top } from "@toss/tds-mobile";
 import { useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useFuelLogs } from "../context/FuelLogContext";
+import { useSelectedCarLogs } from "../context/CarContext";
 import type { FuelLog } from "../types/fuelLog";
 
 /** 비교에 사용할 지난 주유 기록 개수 */
@@ -188,7 +189,9 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
 export function FuelLogInsight() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { logs, loaded } = useFuelLogs();
+  const { loaded } = useFuelLogs();
+  // 연료 종류가 다르면 리터당 금액도 달라서 같은 차의 기록끼리만 비교해요
+  const logs = useSelectedCarLogs();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const insight = useMemo(() => {

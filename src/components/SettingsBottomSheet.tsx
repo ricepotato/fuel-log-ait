@@ -6,6 +6,7 @@ import { fetchRemoteFuelLogs } from "../api/fuellog";
 import { useFuelLogs } from "../context/FuelLogContext";
 import { useToast } from "../hooks/useToast";
 import { SAMPLE_FUEL_LOGS } from "../sandbox/sampleFuelLogs";
+import { useCars } from "../context/CarContext";
 
 export default function SettingsBottomSheet({
   open,
@@ -16,6 +17,7 @@ export default function SettingsBottomSheet({
 }) {
   const { show } = useToast();
   const { clearLogs, addLogs, reloadFromServer } = useFuelLogs();
+  const { selectedCar } = useCars();
   const [openDataImportDialog, setOpenDataImportDialog] = useState(false);
   const [openDataDeleteDialog, setOpenDataDeleteDialog] = useState(false);
   const navigate = useNavigate();
@@ -58,6 +60,7 @@ export default function SettingsBottomSheet({
       SAMPLE_FUEL_LOGS.map((log, index) => ({
         ...log,
         id: (baseId + index).toString(),
+        carId: selectedCar?.id,
       })),
     );
     setOpen(false);
@@ -75,6 +78,13 @@ export default function SettingsBottomSheet({
         header={<BottomSheet.Header>데이터 관리</BottomSheet.Header>}
       >
         <div style={{ paddingBottom: 24 }}>
+          <ListRow
+            contents={<ListRow.Texts type="1RowTypeA" top="내 차 관리" />}
+            onClick={() => {
+              setOpen(false);
+              navigate("/cars");
+            }}
+          />
           <ListRow
             contents={<ListRow.Texts type="1RowTypeA" top="통계 보기" />}
             onClick={() => {

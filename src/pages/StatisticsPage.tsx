@@ -2,7 +2,7 @@ import { Button, Top } from "@toss/tds-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerAdComponent } from "../components/AdBanner";
-import { useFuelLogs } from "../context/FuelLogContext";
+import { useCars, useSelectedCarLogs } from "../context/CarContext";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -58,7 +58,8 @@ function MonthlyBarChart({
 
 export function StatisticsPage() {
   const navigate = useNavigate();
-  const { logs } = useFuelLogs();
+  const logs = useSelectedCarLogs();
+  const { selectedCar } = useCars();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const yearLogs = logs.filter(
@@ -99,6 +100,13 @@ export function StatisticsPage() {
           upperGap={0}
           lowerGap={0}
           title={<Top.TitleParagraph size={28}>통계 보기</Top.TitleParagraph>}
+          subtitleBottom={
+            selectedCar ? (
+              <Top.SubtitleParagraph size={17}>
+                {selectedCar.name}의 기록이에요
+              </Top.SubtitleParagraph>
+            ) : undefined
+          }
         />
 
         {/* Year selector */}

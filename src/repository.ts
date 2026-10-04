@@ -20,10 +20,27 @@ async function createFuelLogApi(): Promise<FuelLogApi | null> {
   return new FuelLogApi(anonymousKey.hash, Environment.environment);
 }
 
+/**
+ * 서버가 carId 를 저장하지 않는 동안에도 차 연결이 사라지지 않도록,
+ * 서버 기록에 carId 가 없으면 캐시에 있던 carId 를 이어 붙여요.
+ */
+async function keepLocalCarIds(serverLogs: FuelLog[]): Promise<FuelLog[]> {
+  const localCarIds = new Map(
+    (await getFuelLogs())
+      .filter((log) => log.carId)
+      .map((log) => [log.id, log.carId]),
+  );
+  return serverLogs.map((log) =>
+    log.carId || !localCarIds.has(log.id)
+      ? log
+      : { ...log, carId: localCarIds.get(log.id) },
+  );
+}
+
 /** 서버 기록을 받아 캐시를 통째로 교체해요. 실패하면 캐시를 건드리지 않아요. */
 async function pullIntoCache(api: FuelLogApi): Promise<FuelLog[] | null> {
   try {
-    const fuelLogs = await api.getFuelLogs();
+    const fuelLogs = await keepLocalCarIds(await api.getFuelLogs());
     await writeCache(fuelLogs);
     return fuelLogs;
   } catch (error) {
@@ -92,6 +109,39 @@ export async function addFuelLog(item: FuelLog): Promise<void> {
 export async function addFuelLogs(items: FuelLog[]): Promise<void> {
   const logs = await getFuelLogs();
   await writeCache([...logs, ...items]);
+}
+
+/** 차가 지정되지 않은 기록을 모두 carId 차에 연결하고, 바뀐 기록을 반환해요. */
+export async function linkUnassignedFuelLogs(
+  carId: string,
+): Promise<FuelLog[]> {
+  const logs = await getFuelLogs();
+  const linked: FuelLog[] = [];
+  const next = logs.map((log) => {
+    if (log.carId) return log;
+    const updated = { ...log, carId };
+    linked.push(updated);
+    return updated;
+  });
+  if (linked.length > 0) await writeCache(next);
+  return linked;
+}
+
+/**
+ * carId 차에 연결된 기록의 carId 를 지워요(차 삭제 시).
+ * carId 가 없는 기록은 기본 차 소속이라, 결과적으로 기본 차로 옮겨져요.
+ */
+export async function unlinkFuelLogsFromCar(carId: string): Promise<void> {
+  const logs = await getFuelLogs();
+  if (!logs.some((log) => log.carId === carId)) return;
+  await writeCache(
+    logs.map((log) => {
+      if (log.carId !== carId) return log;
+      const unlinked = { ...log };
+      delete unlinked.carId;
+      return unlinked;
+    }),
+  );
 }
 
 export async function updateFuelLog(item: FuelLog): Promise<void> {

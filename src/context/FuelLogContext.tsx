@@ -12,6 +12,8 @@ import {
   addFuelLogs,
   clearFuelLogs,
   getFuelLogs,
+  linkUnassignedFuelLogs,
+  unlinkFuelLogsFromCar,
   reloadFuelLogsFromServer,
   removeFuelLog,
   syncFuelLog,
@@ -27,8 +29,12 @@ interface FuelLogState {
   updateLog: (log: FuelLog) => Promise<void>;
   removeLog: (id: string) => Promise<void>;
   clearLogs: () => Promise<void>;
-  /** 여러 기록을 한 번에 추가해요(sandbox 샘플 데이터 입력용). */
+  /** 여러 기록을 한 번에 이 기기에만 추가해요(sandbox 샘플 데이터 입력용). */
   addLogs: (logs: FuelLog[]) => Promise<void>;
+  /** 차가 지정되지 않은 기록을 모두 carId 차에 연결해요(첫 차 등록 시). */
+  linkUnassignedLogs: (carId: string) => Promise<void>;
+  /** carId 차의 기록을 기본 차 소속으로 되돌려요(차 삭제 시). */
+  unlinkCarLogs: (carId: string) => Promise<void>;
   /** 서버 기록을 다시 받아 캐시와 화면을 갱신해요. */
   reloadFromServer: () => Promise<void>;
 }
@@ -96,14 +102,33 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
     await reload();
   }, [reload]);
 
-  // 캐시에 한 번에 넣고, 시작 시 동기화 경로로 로컬 전용 기록을 서버에 올려요.
+  // 대량 입력은 서버에 기록마다 요청하면 호출 한도(분당 40회)에 걸려서
+  // 이 기기 캐시에만 넣어요. 서버 동기화는 별도 기능으로 다룰 예정이에요.
   const addLogs = useCallback(
     async (newLogs: FuelLog[]) => {
       await addFuelLogs(newLogs);
       await reload();
-      sync();
     },
-    [reload, sync],
+    [reload],
+  );
+
+  // 로컬 캐시에만 연결해요. carId 가 없는 기록은 어차피 기본 차(첫 차) 소속이라
+  // 서버에 기록마다 수정 요청을 보낼 필요가 없고, 보내면 호출 한도(분당 40회)에 걸려요.
+  const linkUnassignedLogs = useCallback(
+    async (carId: string) => {
+      const linked = await linkUnassignedFuelLogs(carId);
+      if (linked.length > 0) await reload();
+    },
+    [reload],
+  );
+
+  // 서버가 아직 carId 를 저장하지 않아서 차 연결 변경은 이 기기 캐시에만 반영해요.
+  const unlinkCarLogs = useCallback(
+    async (carId: string) => {
+      await unlinkFuelLogsFromCar(carId);
+      await reload();
+    },
+    [reload],
   );
 
   const reloadFromServer = useCallback(async () => {
@@ -125,6 +150,8 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
         removeLog,
         clearLogs,
         addLogs,
+        linkUnassignedLogs,
+        unlinkCarLogs,
         reloadFromServer,
       }}
     >

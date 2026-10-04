@@ -3,7 +3,7 @@ import { Button, Top } from "@toss/tds-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerAdComponent } from "../components/AdBanner";
-import { useFuelLogs } from "../context/FuelLogContext";
+import { useCars, useSelectedCarLogs } from "../context/CarContext";
 import { useToast } from "../hooks/useToast";
 
 const CSV_HEADERS = [
@@ -54,7 +54,8 @@ async function handleSaveBase64Data({
 export function DataExportPage() {
   const navigate = useNavigate();
   const { show } = useToast();
-  const { logs } = useFuelLogs();
+  const logs = useSelectedCarLogs();
+  const { selectedCar } = useCars();
   // 화면에 보여준 파일 이름 그대로 저장되도록 진입 시점에 한 번만 만들어요
   const [fileName] = useState(() => `주유기록_${new Date().toISOString()}.csv`);
   const [exporting, setExporting] = useState(false);
@@ -143,7 +144,9 @@ export function DataExportPage() {
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <div style={{ fontSize: 13, color: "#8B95A1" }}>
-                  내보낼 주유 기록
+                  {selectedCar
+                    ? `${selectedCar.name}의 주유 기록`
+                    : "내보낼 주유 기록"}
                 </div>
                 <div
                   style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}

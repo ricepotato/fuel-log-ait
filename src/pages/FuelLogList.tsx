@@ -1,8 +1,9 @@
 import { ListRow, Tab } from "@toss/tds-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CarSwitchBottomSheet from "../components/CarSwitchBottomSheet";
 import ReceiptScanBottomSheet from "../components/ReceiptScanBottomSheet";
-import { useFuelLogs } from "../context/FuelLogContext";
+import { useCars, useSelectedCarLogs } from "../context/CarContext";
 import { useFuelLogFilter } from "../context/FuelLogFilterContext";
 import type { FuelLog } from "../types/fuelLog";
 
@@ -16,7 +17,7 @@ export function FuelLogList() {
     setSelectedYear,
     setSelectedMonthIndex,
   } = useFuelLogFilter();
-  const { logs } = useFuelLogs();
+  const logs = useSelectedCarLogs();
 
   const selectedMonth = MONTHS[selectedMonthIndex];
 
@@ -156,6 +157,9 @@ function YearSelector({
   setSelectedYear: (year: number) => void;
   onToday: () => void;
 }) {
+  const { selectedCar } = useCars();
+  const [carSheetOpen, setCarSheetOpen] = useState(false);
+
   return (
     <div
       style={{
@@ -167,6 +171,33 @@ function YearSelector({
         padding: "24px 0 12px",
       }}
     >
+      <button
+        aria-label="차 전환"
+        onClick={() => setCarSheetOpen(true)}
+        style={{
+          position: "absolute",
+          left: 24,
+          maxWidth: 96,
+          background: "none",
+          border: "1px solid #E5E8EB",
+          borderRadius: 8,
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: 600,
+          color: "#4E5968",
+          padding: "6px 10px",
+          lineHeight: 1,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {selectedCar?.name ?? "내 차"} ▾
+      </button>
+      <CarSwitchBottomSheet
+        open={carSheetOpen}
+        onClose={() => setCarSheetOpen(false)}
+      />
       <button
         onClick={() => setSelectedYear(selectedYear - 1)}
         style={{
