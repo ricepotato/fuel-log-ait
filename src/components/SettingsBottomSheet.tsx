@@ -75,7 +75,7 @@ export default function SettingsBottomSheet({
       <BottomSheet
         open={open}
         onClose={() => setOpen(false)}
-        header={<BottomSheet.Header>데이터 관리</BottomSheet.Header>}
+        header={<BottomSheet.Header>설정</BottomSheet.Header>}
       >
         <div style={{ paddingBottom: 24 }}>
           <ListRow
