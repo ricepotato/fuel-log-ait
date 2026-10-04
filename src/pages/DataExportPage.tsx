@@ -7,16 +7,29 @@ import { ADS_ENABLED } from "../config";
 import { useCars, useSelectedCarLogs } from "../context/CarContext";
 import { useToast } from "../hooks/useToast";
 
-const CSV_HEADERS = [
-  "ID",
-  "날짜",
-  "주유소",
-  "주유량(L)",
-  "리터당금액(원)",
-  "총금액(원)",
-  "누적주행거리(km)",
-  "연료잔량(%)",
-];
+// 전기차는 충전량(kWh)과 kWh당 단가, 그 외에는 주유량(L)과 리터당 금액을 내보내요.
+const CSV_HEADERS = {
+  fuel: [
+    "ID",
+    "날짜",
+    "주유소",
+    "주유량(L)",
+    "리터당금액(원)",
+    "총금액(원)",
+    "누적주행거리(km)",
+    "연료잔량(%)",
+  ],
+  electric: [
+    "ID",
+    "날짜",
+    "충전소",
+    "충전량(kWh)",
+    "kWh당금액(원)",
+    "총금액(원)",
+    "누적주행거리(km)",
+    "배터리잔량(%)",
+  ],
+};
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -57,8 +70,11 @@ export function DataExportPage() {
   const { show } = useToast();
   const logs = useSelectedCarLogs();
   const { selectedCar } = useCars();
-  // 화면에 보여준 파일 이름 그대로 저장되도록 진입 시점에 한 번만 만들어요
-  const [fileName] = useState(() => `주유기록_${new Date().toISOString()}.csv`);
+  const isElectric = selectedCar?.fuelType === "electric";
+  const action = isElectric ? "충전" : "주유";
+  // 화면에 보여준 파일 이름 그대로 저장되도록 시각은 진입 시점에 한 번만 정해요
+  const [createdAt] = useState(() => new Date().toISOString());
+  const fileName = `${action}기록_${createdAt}.csv`;
   const [exporting, setExporting] = useState(false);
 
   async function exportToCsv() {
@@ -68,14 +84,14 @@ export function DataExportPage() {
         log.id,
         log.date,
         log.location ?? "",
-        log.liters ?? "",
-        log.pricePerLiter ?? "",
+        (isElectric ? log.kWh : log.liters) ?? "",
+        (isElectric ? log.pricePerkWh : log.pricePerLiter) ?? "",
         log.totalPrice,
         log.odometer ?? "",
         log.fuelLevel ?? "",
       ]);
 
-    const csv = [CSV_HEADERS, ...rows]
+    const csv = [CSV_HEADERS[isElectric ? "electric" : "fuel"], ...rows]
       .map((row) =>
         row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
       )
@@ -91,7 +107,7 @@ export function DataExportPage() {
     setExporting(false);
 
     if (isSuccess) {
-      console.log("주유기록 데이터를 내보냈어요");
+      console.log(`${action}기록 데이터를 내보냈어요`);
     } else {
       show({
         text: "데이터 내보내기에 실패했어요",
@@ -149,8 +165,8 @@ export function DataExportPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <div style={{ fontSize: 13, color: "#8B95A1" }}>
                   {selectedCar
-                    ? `${selectedCar.name}의 주유 기록`
-                    : "내보낼 주유 기록"}
+                    ? `${selectedCar.name}의 ${action} 기록`
+                    : `내보낼 ${action} 기록`}
                 </div>
                 <div
                   style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}
