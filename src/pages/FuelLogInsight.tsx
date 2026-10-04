@@ -247,7 +247,7 @@ export function FuelLogInsight() {
     diff == null
       ? currentPrice == null
         ? "리터당 금액을 입력하면 비교해드려요"
-        : "첫 비교 기록이에요"
+        : "🎉 첫 기록이에요 "
       : isSame
         ? "지난번과 리터당 금액이 같아요"
         : `지난번보다 리터당 ${Math.abs(diff).toLocaleString()}원 더 ${isCheaper ? "싸게" : "비싸게"} 주유했어요`;
