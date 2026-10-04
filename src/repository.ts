@@ -21,26 +21,35 @@ async function createFuelLogApi(): Promise<FuelLogApi | null> {
 }
 
 /**
- * 서버가 carId 를 저장하지 않는 동안에도 차 연결이 사라지지 않도록,
- * 서버 기록에 carId 가 없으면 캐시에 있던 carId 를 이어 붙여요.
+ * 서버가 아직 저장하지 않는 필드예요(차 연결, 전기차 충전량/단가).
+ * 서버에 반영되기 전까지는 이 기기 캐시에만 남아요.
  */
-async function keepLocalCarIds(serverLogs: FuelLog[]): Promise<FuelLog[]> {
-  const localCarIds = new Map(
-    (await getFuelLogs())
-      .filter((log) => log.carId)
-      .map((log) => [log.id, log.carId]),
-  );
-  return serverLogs.map((log) =>
-    log.carId || !localCarIds.has(log.id)
-      ? log
-      : { ...log, carId: localCarIds.get(log.id) },
-  );
+const LOCAL_ONLY_FIELDS = ["carId", "kWh", "pricePerkWh"] as const;
+
+/**
+ * 서버 기록으로 캐시를 교체할 때 위 필드가 사라지지 않도록,
+ * 서버 기록에 값이 없으면 캐시에 있던 값을 이어 붙여요.
+ */
+async function keepLocalOnlyFields(serverLogs: FuelLog[]): Promise<FuelLog[]> {
+  const localLogs = new Map((await getFuelLogs()).map((log) => [log.id, log]));
+  return serverLogs.map((log) => {
+    const local = localLogs.get(log.id);
+    if (!local) return log;
+    const merged = { ...log };
+    for (const field of LOCAL_ONLY_FIELDS) {
+      if (merged[field] == null && local[field] != null) {
+        // 필드마다 타입이 달라서 같은 키끼리 복사하도록 단언해요.
+        (merged as Record<string, unknown>)[field] = local[field];
+      }
+    }
+    return merged;
+  });
 }
 
 /** 서버 기록을 받아 캐시를 통째로 교체해요. 실패하면 캐시를 건드리지 않아요. */
 async function pullIntoCache(api: FuelLogApi): Promise<FuelLog[] | null> {
   try {
-    const fuelLogs = await keepLocalCarIds(await api.getFuelLogs());
+    const fuelLogs = await keepLocalOnlyFields(await api.getFuelLogs());
     await writeCache(fuelLogs);
     return fuelLogs;
   } catch (error) {
