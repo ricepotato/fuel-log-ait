@@ -67,8 +67,11 @@ export function StatisticsPage() {
   );
 
   const totalYearCost = yearLogs.reduce((sum, log) => sum + log.totalPrice, 0);
-  const totalYearLiters = yearLogs.reduce(
-    (sum, log) => sum + (log.liters ?? 0),
+  // 전기차는 충전량(kWh), 그 외에는 주유량(L)을 합산해요.
+  const isElectric = selectedCar?.fuelType === "electric";
+  const action = isElectric ? "충전" : "주유";
+  const totalYearAmount = yearLogs.reduce(
+    (sum, log) => sum + ((isElectric ? log.kWh : log.liters) ?? 0),
     0,
   );
   const refuelCount = yearLogs.length;
@@ -171,7 +174,7 @@ export function StatisticsPage() {
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <div style={{ fontSize: 13, color: "#8B95A1" }}>
-                  연간 총 주유비
+                  연간 총 {action}비
                 </div>
                 <div
                   style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}
@@ -187,7 +190,9 @@ export function StatisticsPage() {
                   textAlign: "right",
                 }}
               >
-                <div style={{ fontSize: 13, color: "#8B95A1" }}>주유 횟수</div>
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>
+                  {action} 횟수
+                </div>
                 <div
                   style={{ fontSize: 24, fontWeight: 700, color: "#191F28" }}
                 >
@@ -196,13 +201,16 @@ export function StatisticsPage() {
               </div>
             </div>
 
-            {totalYearLiters > 0 && (
+            {totalYearAmount > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ fontSize: 13, color: "#8B95A1" }}>총 주유량</div>
+                <div style={{ fontSize: 13, color: "#8B95A1" }}>
+                  총 {action}량
+                </div>
                 <div
                   style={{ fontSize: 20, fontWeight: 600, color: "#191F28" }}
                 >
-                  {totalYearLiters.toFixed(1)}L
+                  {totalYearAmount.toFixed(1)}
+                  {isElectric ? "kWh" : "L"}
                 </div>
               </div>
             )}
@@ -225,7 +233,7 @@ export function StatisticsPage() {
               color: "#191F28",
             }}
           >
-            월별 주유비
+            월별 {action}비
           </div>
 
           {refuelCount === 0 ? (
@@ -237,7 +245,7 @@ export function StatisticsPage() {
                 fontSize: 15,
               }}
             >
-              이 해의 주유 기록이 없어요
+              이 해의 {action} 기록이 없어요
             </div>
           ) : (
             <>
@@ -327,7 +335,7 @@ export function StatisticsPage() {
                         {cost.toLocaleString()}원
                       </div>
                       <div style={{ fontSize: 12, color: "#8B95A1" }}>
-                        {count}회 주유
+                        {count}회 {action}
                       </div>
                     </div>
                   </div>

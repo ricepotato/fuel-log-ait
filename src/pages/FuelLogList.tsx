@@ -18,6 +18,8 @@ export function FuelLogList() {
     setSelectedMonthIndex,
   } = useFuelLogFilter();
   const logs = useSelectedCarLogs();
+  const { selectedCar } = useCars();
+  const isElectric = selectedCar?.fuelType === "electric";
 
   const selectedMonth = MONTHS[selectedMonthIndex];
 
@@ -53,7 +55,11 @@ export function FuelLogList() {
       </Tab>
 
       {/* Monthly summary */}
-      <MonthlySummary selectedMonth={selectedMonth} logs={filtered} />
+      <MonthlySummary
+        selectedMonth={selectedMonth}
+        logs={filtered}
+        isElectric={isElectric}
+      />
 
       {/* Fuel log list */}
       {filtered.map((log, index) => {
@@ -64,9 +70,18 @@ export function FuelLogList() {
         ].filter(Boolean);
         const contentsBottom =
           bottomParts.length > 0 ? bottomParts.join(" · ") : undefined;
+        // 전기차는 충전량(kWh)과 kWh당 단가, 그 외에는 주유량(L)과 리터당 금액을 보여줘요.
+        const rightTop = isElectric
+          ? log.kWh != null
+            ? `${log.kWh}kWh`
+            : "-"
+          : log.liters != null
+            ? `${log.liters}L`
+            : "-";
+        const unitPrice = isElectric ? log.pricePerkWh : log.pricePerLiter;
         const rightBottom =
-          log.pricePerLiter != null
-            ? `${log.pricePerLiter.toLocaleString()}원/L`
+          unitPrice != null
+            ? `${unitPrice.toLocaleString()}원/${isElectric ? "kWh" : "L"}`
             : undefined;
         return (
           <ListRow
@@ -88,7 +103,7 @@ export function FuelLogList() {
             right={
               <ListRow.Texts
                 type="Right2RowTypeA"
-                top={`${log.liters != null ? `${log.liters}L` : "-"}`}
+                top={rightTop}
                 bottom={rightBottom ? rightBottom : ""}
               />
             }
@@ -105,14 +120,20 @@ export function FuelLogList() {
 function MonthlySummary({
   selectedMonth,
   logs,
+  isElectric,
 }: {
   selectedMonth: number;
   logs: FuelLog[];
+  isElectric: boolean;
 }) {
   const count = logs.length;
   const totalSpend = logs.reduce((sum, log) => sum + log.totalPrice, 0);
-  const totalLiters = logs.reduce((sum, log) => sum + (log.liters ?? 0), 0);
-  const hasAnyLiters = logs.some((log) => log.liters != null);
+  // 전기차는 충전량(kWh), 그 외에는 주유량(L)을 합산해요.
+  const amountOf = (log: FuelLog) => (isElectric ? log.kWh : log.liters);
+  const totalAmount = logs.reduce((sum, log) => sum + (amountOf(log) ?? 0), 0);
+  const hasAnyAmount = logs.some((log) => amountOf(log) != null);
+  const action = isElectric ? "충전" : "주유";
+  const unit = isElectric ? "kWh" : "L";
 
   if (count === 0) {
     return (
@@ -124,7 +145,7 @@ function MonthlySummary({
           fontSize: 15,
         }}
       >
-        이 달의 주유 기록이 없어요!
+        이 달의 {action} 기록이 없어요!
       </div>
     );
   }
@@ -138,8 +159,8 @@ function MonthlySummary({
       }}
     >
       <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-        {selectedMonth}월 · {count}회 주유
-        {hasAnyLiters ? ` · 총 ${totalLiters.toFixed(1)}L` : ""}
+        {selectedMonth}월 · {count}회 {action}
+        {hasAnyAmount ? ` · 총 ${totalAmount.toFixed(1)}${unit}` : ""}
       </div>
       <div style={{ fontSize: 20, fontWeight: 700, color: "#191F28" }}>
         {totalSpend.toLocaleString()}원
