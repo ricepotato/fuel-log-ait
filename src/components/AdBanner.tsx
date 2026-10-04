@@ -5,7 +5,7 @@ import { Environment } from "@apps-in-toss/web-framework";
 const adGroupId =
   Environment.environment === "sandbox"
     ? "ait-ad-test-banner-id"
-    : "ait-ad-test-banner-id";
+    : "ait.v2.live.ce0119e08667428e";
 
 export function BannerAdComponent() {
   const containerRef = useRef<HTMLDivElement>(null);
