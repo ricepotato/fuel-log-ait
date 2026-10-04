@@ -22,7 +22,7 @@ export function CarFormPage({ initialData }: { initialData?: Car }) {
   const { cars, addCar, updateCar, deleteCar } = useCars();
   const { logs } = useFuelLogs();
 
-  const [name, setName] = useState(initialData?.name ?? "붕붕이");
+  const [name, setName] = useState(initialData?.name ?? "");
   const [fuelType, setFuelType] = useState<FuelType>(
     initialData?.fuelType ?? "gasoline",
   );
@@ -120,7 +120,7 @@ export function CarFormPage({ initialData }: { initialData?: Car }) {
           variant="line"
           label="차종"
           labelOption="sustain"
-          placeholder="예: 쏘나타"
+          placeholder="예: 쏘나타 (선택)"
           value={model}
           onChange={(e) => setModel(e.target.value)}
         />
@@ -129,7 +129,7 @@ export function CarFormPage({ initialData }: { initialData?: Car }) {
           variant="line"
           label="메모"
           labelOption="sustain"
-          placeholder="차량 번호, 보험 만기일 등 자유롭게 적어주세요"
+          placeholder="메모를 자유롭게 적어주세요 (선택)"
           value={memo}
           onChange={(e) => setMemo(e.target.value)}
           minHeight={96}
