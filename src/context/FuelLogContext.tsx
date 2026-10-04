@@ -13,7 +13,7 @@ import {
   clearFuelLogs,
   getFuelLogs,
   linkUnassignedFuelLogs,
-  unlinkFuelLogsFromCar,
+  removeFuelLogsOfCar,
   removeFuelLog,
   updateFuelLog,
 } from "../repository";
@@ -30,8 +30,8 @@ interface FuelLogState {
   addLogs: (logs: FuelLog[]) => Promise<void>;
   /** 차가 지정되지 않은 기록을 모두 carId 차에 연결해요(첫 차 등록 시). */
   linkUnassignedLogs: (carId: string) => Promise<void>;
-  /** carId 차의 기록을 기본 차 소속으로 되돌려요(차 삭제 시). */
-  unlinkCarLogs: (carId: string) => Promise<void>;
+  /** carId 차의 기록을 모두 지워요(차 삭제 시). 기본 차면 차가 지정되지 않은 기록도 지워요. */
+  removeCarLogs: (carId: string, isDefaultCar: boolean) => Promise<void>;
 }
 
 const FuelLogContext = createContext<FuelLogState | null>(null);
@@ -96,9 +96,9 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
     [reload],
   );
 
-  const unlinkCarLogs = useCallback(
-    async (carId: string) => {
-      await unlinkFuelLogsFromCar(carId);
+  const removeCarLogs = useCallback(
+    async (carId: string, isDefaultCar: boolean) => {
+      await removeFuelLogsOfCar(carId, isDefaultCar);
       await reload();
     },
     [reload],
@@ -115,7 +115,7 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
         clearLogs,
         addLogs,
         linkUnassignedLogs,
-        unlinkCarLogs,
+        removeCarLogs,
       }}
     >
       {children}

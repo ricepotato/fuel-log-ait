@@ -29,7 +29,7 @@ interface CarState {
   /** 새 차를 등록하고 그 차를 선택해요. 첫 차라면 기존 기록을 모두 연결해요. */
   addCar: (input: CarInput) => Promise<Car>;
   updateCar: (car: Car) => Promise<void>;
-  /** 차를 지우고, 그 차의 기록은 기본 차(남은 차 중 가장 먼저 만든 차)로 옮겨요. */
+  /** 차를 지우고, 그 차의 기록도 모두 지워요. */
   deleteCar: (id: string) => Promise<void>;
   selectCar: (id: string) => Promise<void>;
 }
@@ -45,7 +45,7 @@ export function carIdOfLog(log: FuelLog, defaultCarId: string | undefined) {
 }
 
 export function CarProvider({ children }: { children: ReactNode }) {
-  const { linkUnassignedLogs, unlinkCarLogs } = useFuelLogs();
+  const { linkUnassignedLogs, removeCarLogs } = useFuelLogs();
   const [cars, setCars] = useState<Car[]>([]);
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -94,7 +94,7 @@ export function CarProvider({ children }: { children: ReactNode }) {
 
   const deleteCar = useCallback(
     async (id: string) => {
-      await unlinkCarLogs(id);
+      await removeCarLogs(id, cars[0]?.id === id);
       const next = cars.filter((car) => car.id !== id);
       await saveCars(next);
       setCars(next);
@@ -102,7 +102,7 @@ export function CarProvider({ children }: { children: ReactNode }) {
         await selectCar(next[0].id);
       }
     },
-    [cars, selectedCarId, unlinkCarLogs, selectCar],
+    [cars, selectedCarId, removeCarLogs, selectCar],
   );
 
   // 선택한 차가 지워졌거나 아직 고른 적이 없으면 기본 차(첫 차)를 보여줘요.

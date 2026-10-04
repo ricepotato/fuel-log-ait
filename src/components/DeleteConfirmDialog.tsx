@@ -21,17 +21,18 @@ export default function DeleteConfirmDialog({
         }
         cancelButton={
           <ConfirmDialog.CancelButton onClick={() => setOpen(false)}>
-            아니오
+            취소
           </ConfirmDialog.CancelButton>
         }
         confirmButton={
           <ConfirmDialog.ConfirmButton
+            color="danger"
             onClick={() => {
               setOpen(false);
               onConfirm();
             }}
           >
-            예
+            삭제
           </ConfirmDialog.ConfirmButton>
         }
         onClose={() => setOpen(false)}

@@ -486,11 +486,11 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
   return (
     <Button
       color="danger"
-      variant="fill"
+      variant="weak"
       style={{ width: "100%" }}
       onClick={onDelete}
     >
-      삭제하기
+      기록 삭제하기
     </Button>
   );
 }

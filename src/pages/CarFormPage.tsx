@@ -177,18 +177,15 @@ export function CarFormPage({ initialData }: { initialData?: Car }) {
   );
 }
 
-/** 삭제할 차의 기록이 어디로 가는지 알려주는 문구를 만들어요. */
+/** 차를 지우면 기록도 함께 지워진다는 걸 알려주는 문구를 만들어요. */
 function deleteDescription(car: Car, cars: Car[], logs: FuelLog[]): string {
   const count = logs.filter(
     (log) => carIdOfLog(log, cars[0]?.id) === car.id,
   ).length;
   if (count === 0) return `${car.name}을(를) 삭제할까요?`;
 
-  // 남은 차 중 가장 먼저 만든 차가 새 기본 차가 돼요.
-  const nextDefault = cars.find((item) => item.id !== car.id);
-  return nextDefault
-    ? `${car.name}의 주유 기록 ${count}개는 ${nextDefault.name}(으)로 옮겨져요.`
-    : `주유 기록 ${count}개는 지워지지 않고 차 없이 남아요.`;
+  const record = car.fuelType === "electric" ? "충전 기록" : "주유 기록";
+  return `${car.name}의 ${record} ${count}개도 모두 삭제되고 되돌릴 수 없어요. 기록을 남기고 싶다면 먼저 데이터 내보내기로 저장해 주세요.`;
 }
 
 function DeleteCarConfirmDialog({
@@ -211,7 +208,7 @@ function DeleteCarConfirmDialog({
       }
       cancelButton={
         <ConfirmDialog.CancelButton onClick={onCancel}>
-          아니오
+          취소
         </ConfirmDialog.CancelButton>
       }
       confirmButton={

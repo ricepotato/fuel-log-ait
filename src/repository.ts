@@ -45,20 +45,18 @@ export async function linkUnassignedFuelLogs(
 }
 
 /**
- * carId 차에 연결된 기록의 carId 를 지워요(차 삭제 시).
- * carId 가 없는 기록은 기본 차 소속이라, 결과적으로 기본 차로 옮겨져요.
+ * carId 차의 기록을 모두 지워요(차 삭제 시).
+ * carId 가 없는 기록은 기본 차 소속이라, 기본 차를 지울 때는 함께 지워요.
  */
-export async function unlinkFuelLogsFromCar(carId: string): Promise<void> {
+export async function removeFuelLogsOfCar(
+  carId: string,
+  isDefaultCar: boolean,
+): Promise<void> {
   const logs = await getFuelLogs();
-  if (!logs.some((log) => log.carId === carId)) return;
-  await writeFuelLogs(
-    logs.map((log) => {
-      if (log.carId !== carId) return log;
-      const unlinked = { ...log };
-      delete unlinked.carId;
-      return unlinked;
-    }),
-  );
+  const belongsToCar = (log: FuelLog) =>
+    log.carId === carId || (isDefaultCar && !log.carId);
+  if (!logs.some(belongsToCar)) return;
+  await writeFuelLogs(logs.filter((log) => !belongsToCar(log)));
 }
 
 export async function updateFuelLog(item: FuelLog): Promise<void> {
