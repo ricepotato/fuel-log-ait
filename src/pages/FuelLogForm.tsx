@@ -206,6 +206,29 @@ export function FuelLogForm({ initialData }: Props) {
             {initialData ? `${text.record} 수정` : `${text.record} 추가`}
           </Top.TitleParagraph>
         }
+        subtitleBottom={
+          // 차를 등록하지 않으면 주유 기록으로 보여서, 전기차 오너에게 차 등록을 안내해요.
+          !initialData && cars.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => navigate("/cars")}
+              style={{
+                padding: 0,
+                border: "none",
+                background: "none",
+                fontSize: 14,
+                color: "#8B95A1",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              ⚡ 전기차 오너이신가요?{" "}
+              <span style={{ color: "#3182F6", fontWeight: 600 }}>
+                내 차 등록하기 ›
+              </span>
+            </button>
+          ) : undefined
+        }
       />
       <div
         style={{

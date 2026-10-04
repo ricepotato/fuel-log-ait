@@ -42,6 +42,8 @@ export function CarListPage() {
           아직 등록된 차가 없어요
           <br />
           처음 등록한 차에 지금까지의 주유 기록이 연결돼요
+          <br />
+          (⚡ 전기차도 추가할 수 있어요! )
         </div>
       ) : (
         <div>
