@@ -38,7 +38,7 @@ const CarContext = createContext<CarState | null>(null);
 
 /**
  * 기록이 어느 차에 속하는지 정해요.
- * carId 가 없는 기록(차 기능 이전 기록, 서버가 carId 를 잃은 기록)은 기본 차 소속이에요.
+ * carId 가 없는 기록(차 기능 이전 기록)은 기본 차 소속이에요.
  */
 export function carIdOfLog(log: FuelLog, defaultCarId: string | undefined) {
   return log.carId ?? defaultCarId;

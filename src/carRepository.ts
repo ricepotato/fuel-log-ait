@@ -5,7 +5,7 @@ const CARS_KEY = "cars";
 const SELECTED_CAR_KEY = "selected-car-id";
 
 /**
- * 차 목록과 선택한 차는 아직 서버 API 가 없어서 이 기기 Storage 에만 저장해요.
+ * 차 목록과 선택한 차는 이 기기 Storage 에 저장해요.
  */
 
 export async function getCars(): Promise<Car[]> {

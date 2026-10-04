@@ -1,8 +1,7 @@
-import { Environment, User } from "@apps-in-toss/web-framework";
+import { Environment } from "@apps-in-toss/web-framework";
 import { BottomSheet, ConfirmDialog, ListRow } from "@toss/tds-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchRemoteFuelLogs } from "../api/fuellog";
 import { useFuelLogs } from "../context/FuelLogContext";
 import { useToast } from "../hooks/useToast";
 import { SAMPLE_FUEL_LOGS } from "../sandbox/sampleFuelLogs";
@@ -16,36 +15,10 @@ export default function SettingsBottomSheet({
   setOpen: (open: boolean) => void;
 }) {
   const { show } = useToast();
-  const { clearLogs, addLogs, reloadFromServer } = useFuelLogs();
+  const { clearLogs, addLogs } = useFuelLogs();
   const { selectedCar } = useCars();
-  const [openDataImportDialog, setOpenDataImportDialog] = useState(false);
   const [openDataDeleteDialog, setOpenDataDeleteDialog] = useState(false);
   const navigate = useNavigate();
-
-  async function requestRemoteDataImport() {
-    /**
-     * 서버에 저장된 기록이 있는지 확인한 다음 dialog 를 띄웁니다.
-     * 사용자가 확인 버튼을 누르면 서버 기록으로 이 기기의 목록을 맞춥니다.
-     */
-    const anonymousKey = await User.getAnonymousKey();
-    const remoteFuelLogs = await fetchRemoteFuelLogs(
-      anonymousKey.hash,
-      Environment.environment,
-    );
-    if (remoteFuelLogs.length <= 0) {
-      show({ text: "가져올 데이터가 없어요", duration: 2000 });
-      return;
-    }
-
-    setOpenDataImportDialog(true);
-  }
-
-  async function confirmRemoteDataImport() {
-    await reloadFromServer();
-    setOpenDataImportDialog(false);
-    setOpen(false);
-    show({ text: "데이터를 가져왔어요", duration: 2000 });
-  }
 
   async function confirmDeleteAllData() {
     await clearLogs();
@@ -99,12 +72,6 @@ export default function SettingsBottomSheet({
               navigate("/export");
             }}
           />
-          <ListRow
-            contents={<ListRow.Texts type="1RowTypeA" top="데이터 가져오기" />}
-            onClick={() => {
-              requestRemoteDataImport();
-            }}
-          />
           {Environment.environment === "sandbox" ? (
             <>
               <ListRow
@@ -129,11 +96,6 @@ export default function SettingsBottomSheet({
           ) : null}
         </div>
       </BottomSheet>
-      <RemoteDataLoadConfirmDialog
-        open={openDataImportDialog}
-        setOpen={setOpenDataImportDialog}
-        onConfirm={confirmRemoteDataImport}
-      />
       <DeleteAllDataConfirmDialog
         open={openDataDeleteDialog}
         setOpen={setOpenDataDeleteDialog}
@@ -168,41 +130,6 @@ function DeleteAllDataConfirmDialog({
       }
       confirmButton={
         <ConfirmDialog.ConfirmButton color="danger" onClick={onConfirm}>
-          예
-        </ConfirmDialog.ConfirmButton>
-      }
-      onClose={() => setOpen(false)}
-    />
-  );
-}
-
-function RemoteDataLoadConfirmDialog({
-  open,
-  setOpen,
-  onConfirm,
-}: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <ConfirmDialog
-      open={open}
-      title={<ConfirmDialog.Title>{"데이터 가져오기"}</ConfirmDialog.Title>}
-      description={
-        <ConfirmDialog.Description>
-          {
-            "서버에 저장된 주유 기록을 가져올게요.\n이 기기의 목록이 서버 기록과\n동일하게 맞춰져요."
-          }
-        </ConfirmDialog.Description>
-      }
-      cancelButton={
-        <ConfirmDialog.CancelButton onClick={() => setOpen(false)}>
-          아니오
-        </ConfirmDialog.CancelButton>
-      }
-      confirmButton={
-        <ConfirmDialog.ConfirmButton onClick={onConfirm}>
           예
         </ConfirmDialog.ConfirmButton>
       }
