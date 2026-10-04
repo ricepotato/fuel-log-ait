@@ -2,6 +2,7 @@ import { Button, Top } from "@toss/tds-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerAdComponent } from "../components/AdBanner";
+import { ADS_ENABLED } from "../config";
 import { useCars, useSelectedCarLogs } from "../context/CarContext";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -357,9 +358,11 @@ export function StatisticsPage() {
           </Button>
         </div>
       </main>
-      <footer>
-        <BannerAdComponent />
-      </footer>
+      {ADS_ENABLED && (
+        <footer>
+          <BannerAdComponent />
+        </footer>
+      )}
     </div>
   );
 }

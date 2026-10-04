@@ -3,6 +3,7 @@ import { Button, Top } from "@toss/tds-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerAdComponent } from "../components/AdBanner";
+import { ADS_ENABLED } from "../config";
 import { useCars, useSelectedCarLogs } from "../context/CarContext";
 import { useToast } from "../hooks/useToast";
 
@@ -103,14 +104,17 @@ export function DataExportPage() {
     <>
       <div
         style={{
-          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
           height: "100vh",
         }}
       >
         <main
           style={{
             backgroundColor: "#FFFFFF",
-            padding: "24px 0 120px",
+            // 하단에 고정된 광고에 버튼이 가려지지 않도록 아래 여백을 둬요.
+            padding: "24px 0",
             display: "flex",
             flexDirection: "column",
             gap: 24,
@@ -200,16 +204,15 @@ export function DataExportPage() {
             </Button>
           </div>
         </main>
-        <footer
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            width: "100%",
-          }}
-        >
-          <BannerAdComponent />
-        </footer>
+        {ADS_ENABLED && (
+          <footer
+            style={{
+              width: "100%",
+            }}
+          >
+            <BannerAdComponent />
+          </footer>
+        )}
       </div>
     </>
   );

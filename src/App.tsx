@@ -15,6 +15,7 @@ import { CarListPage } from "./pages/CarListPage";
 import { CarFormPage } from "./pages/CarFormPage";
 import { useCars } from "./context/CarContext";
 import { TossAds } from "@apps-in-toss/web-framework";
+import { ADS_ENABLED } from "./config";
 
 function EditFuelLogRoute() {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +49,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
+    // 광고를 끈 빌드에서는 광고 SDK 를 초기화하지 않아요.
+    if (!ADS_ENABLED) return;
     if (TossAds.initialize.isSupported()) {
       TossAds.initialize({
         callbacks: {
