@@ -13,6 +13,7 @@ import { StatisticsPage } from "./pages/StatisticsPage";
 import { DataExportPage } from "./pages/DataExportPage";
 import { CarListPage } from "./pages/CarListPage";
 import { CarFormPage } from "./pages/CarFormPage";
+import { CloudSyncPage } from "./pages/CloudSyncPage";
 import { useCars } from "./context/CarContext";
 import { TossAds } from "@apps-in-toss/web-framework";
 import { ADS_ENABLED } from "./config";
@@ -90,6 +91,7 @@ function App() {
         <Route path="/insight/:id" element={<FuelLogInsight />} />
         <Route path="/statistics" element={<StatisticsPage />} />
         <Route path="/export" element={<DataExportPage />} />
+        <Route path="/sync" element={<CloudSyncPage />} />
         <Route path="/cars" element={<CarListPage />} />
         <Route path="/cars/new" element={<CarFormPage />} />
         <Route path="/cars/:id" element={<EditCarRoute />} />

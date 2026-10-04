@@ -72,6 +72,13 @@ export default function SettingsBottomSheet({
               navigate("/export");
             }}
           />
+          <ListRow
+            contents={<ListRow.Texts type="1RowTypeA" top="데이터 동기화" />}
+            onClick={() => {
+              setOpen(false);
+              navigate("/sync");
+            }}
+          />
           {Environment.environment === "sandbox" ? (
             <>
               <ListRow
