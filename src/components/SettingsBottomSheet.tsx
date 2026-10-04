@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchRemoteFuelLogs } from "../api/fuellog";
 import { useFuelLogs } from "../context/FuelLogContext";
 import { useToast } from "../hooks/useToast";
+import { SAMPLE_FUEL_LOGS } from "../sandbox/sampleFuelLogs";
 
 export default function SettingsBottomSheet({
   open,
@@ -14,7 +15,7 @@ export default function SettingsBottomSheet({
   setOpen: (open: boolean) => void;
 }) {
   const { show } = useToast();
-  const { clearLogs, reloadFromServer } = useFuelLogs();
+  const { clearLogs, addLogs, reloadFromServer } = useFuelLogs();
   const [openDataImportDialog, setOpenDataImportDialog] = useState(false);
   const [openDataDeleteDialog, setOpenDataDeleteDialog] = useState(false);
   const navigate = useNavigate();
@@ -51,6 +52,21 @@ export default function SettingsBottomSheet({
     show({ text: "로컬 데이터를 모두 삭제했어요", duration: 2000 });
   }
 
+  async function insertSampleData() {
+    const baseId = Date.now();
+    await addLogs(
+      SAMPLE_FUEL_LOGS.map((log, index) => ({
+        ...log,
+        id: (baseId + index).toString(),
+      })),
+    );
+    setOpen(false);
+    show({
+      text: `샘플 데이터 ${SAMPLE_FUEL_LOGS.length}개를 입력했어요`,
+      duration: 2000,
+    });
+  }
+
   return (
     <>
       <BottomSheet
@@ -80,15 +96,26 @@ export default function SettingsBottomSheet({
             }}
           />
           {Environment.environment === "sandbox" ? (
-            <ListRow
-              contents={
-                <ListRow.Texts
-                  type="1RowTypeA"
-                  top="[SANDBOX] 전체 데이터 삭제"
-                />
-              }
-              onClick={() => setOpenDataDeleteDialog(true)}
-            />
+            <>
+              <ListRow
+                contents={
+                  <ListRow.Texts
+                    type="1RowTypeA"
+                    top="[SANDBOX] 전체 데이터 삭제"
+                  />
+                }
+                onClick={() => setOpenDataDeleteDialog(true)}
+              />
+              <ListRow
+                contents={
+                  <ListRow.Texts
+                    type="1RowTypeA"
+                    top="[SANDBOX] 임의의 데이터 입력"
+                  />
+                }
+                onClick={insertSampleData}
+              />
+            </>
           ) : null}
         </div>
       </BottomSheet>

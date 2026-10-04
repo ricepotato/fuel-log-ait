@@ -89,6 +89,11 @@ export async function addFuelLog(item: FuelLog): Promise<void> {
   await writeCache(logs);
 }
 
+export async function addFuelLogs(items: FuelLog[]): Promise<void> {
+  const logs = await getFuelLogs();
+  await writeCache([...logs, ...items]);
+}
+
 export async function updateFuelLog(item: FuelLog): Promise<void> {
   const logs = await getFuelLogs();
   await writeCache(logs.map((log) => (log.id === item.id ? item : log)));

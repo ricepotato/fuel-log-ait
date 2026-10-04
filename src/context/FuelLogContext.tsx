@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import type { FuelLog } from "../types/fuelLog";
 import {
   addFuelLog,
+  addFuelLogs,
   clearFuelLogs,
   getFuelLogs,
   reloadFuelLogsFromServer,
@@ -26,6 +27,8 @@ interface FuelLogState {
   updateLog: (log: FuelLog) => Promise<void>;
   removeLog: (id: string) => Promise<void>;
   clearLogs: () => Promise<void>;
+  /** 여러 기록을 한 번에 추가해요(sandbox 샘플 데이터 입력용). */
+  addLogs: (logs: FuelLog[]) => Promise<void>;
   /** 서버 기록을 다시 받아 캐시와 화면을 갱신해요. */
   reloadFromServer: () => Promise<void>;
 }
@@ -93,6 +96,16 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
     await reload();
   }, [reload]);
 
+  // 캐시에 한 번에 넣고, 시작 시 동기화 경로로 로컬 전용 기록을 서버에 올려요.
+  const addLogs = useCallback(
+    async (newLogs: FuelLog[]) => {
+      await addFuelLogs(newLogs);
+      await reload();
+      sync();
+    },
+    [reload, sync],
+  );
+
   const reloadFromServer = useCallback(async () => {
     const serverLogs = await reloadFuelLogsFromServer();
     if (serverLogs) {
@@ -111,6 +124,7 @@ export function FuelLogProvider({ children }: { children: ReactNode }) {
         updateLog,
         removeLog,
         clearLogs,
+        addLogs,
         reloadFromServer,
       }}
     >
