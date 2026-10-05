@@ -1,0 +1,69 @@
+import { BottomSheet, ListRow } from "@toss/tds-mobile";
+import { useAlbumPhotos } from "../hooks/useAlbumPhotos";
+import { useToast } from "../hooks/useToast";
+import { useEffect } from "react";
+import { Device, OpenCameraPermissionError } from "@apps-in-toss/web-framework";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  onImageSelected: (base64EncodedData: string) => void;
+}
+
+export default function ReceiptScanBottomSheet({
+  open,
+  onClose,
+  onImageSelected,
+}: Props) {
+  const { show } = useToast();
+  const { albumPhotos, loadPhotos } = useAlbumPhotos({
+    base64: true,
+  });
+
+  async function handleCamera() {
+    onClose();
+    try {
+      const result = await Device.openCamera({ base64: true });
+      onImageSelected(result.dataUri);
+    } catch (error) {
+      if (error instanceof OpenCameraPermissionError) {
+        show({ text: "카메라 접근 권한이 필요해요", duration: 2000 });
+        return;
+      }
+      show({ text: "사진 촬영이 취소됐어요", duration: 2000 });
+    }
+  }
+
+  async function handleGallery() {
+    onClose();
+    loadPhotos();
+  }
+
+  useEffect(() => {
+    if (albumPhotos.length > 0) {
+      const latestPhoto = albumPhotos[albumPhotos.length - 1];
+      onImageSelected(latestPhoto.dataUri);
+    }
+  }, [albumPhotos, onImageSelected]);
+
+  return (
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      header={<BottomSheet.Header>영수증 AI 스캔</BottomSheet.Header>}
+    >
+      <div style={{ paddingBottom: 24 }}>
+        <ListRow
+          contents={<ListRow.Texts type="1RowTypeA" top="카메라로 촬영하기" />}
+          onClick={handleCamera}
+        />
+        <ListRow
+          contents={
+            <ListRow.Texts type="1RowTypeA" top="갤러리에서 선택하기" />
+          }
+          onClick={handleGallery}
+        />
+      </div>
+    </BottomSheet>
+  );
+}

@@ -1,0 +1,13 @@
+{
+  "appName": "fuel-log-ait",
+  "permissions": [
+    {
+      "name": "camera",
+      "access": "access"
+    },
+    {
+      "name": "photos",
+      "access": "read"
+    }
+  ]
+}

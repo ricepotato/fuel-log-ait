@@ -1,20 +1,45 @@
 import { Button, Slider, TextField, Top } from "@toss/tds-mobile";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { DatepickerButton } from "../components/DatepickerButton";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import { useToast } from "../hooks/useToast";
-import {
-  addFuelLog,
-  getFuelLogs,
-  removeFuelLog,
-  updateFuelLog,
-} from "../repository";
+import { useFuelLogs } from "../context/FuelLogContext";
+import { carIdOfLog, useCars, useSelectedCarLogs } from "../context/CarContext";
 import type { FuelLog } from "../types/fuelLog";
+import type { ReceiptAnalyzeResult } from "../api/fuellog";
 
 interface Props {
   initialData?: FuelLog;
 }
+
+// 전기차는 리터 대신 kWh 로 입력받아요. 나머지 입력 흐름은 같아요.
+const FORM_TEXT = {
+  fuel: {
+    record: "주유 기록",
+    totalPrice: "총 주유 금액",
+    unitPrice: "리터당 금액",
+    unitSuffix: "원/L",
+    station: "주유소",
+    stationPlaceholder: "주유소 이름 입력 (선택)",
+    amount: "주유량",
+    amountUnit: "L",
+    amountHint: "주유량은 리터당 금액과 총 금액으로 자동 계산해요",
+    level: "주유 후 연료 잔량",
+  },
+  electric: {
+    record: "충전 기록",
+    totalPrice: "총 충전 금액",
+    unitPrice: "kWh당 충전 단가",
+    unitSuffix: "원/kWh",
+    station: "충전소",
+    stationPlaceholder: "충전소 이름 입력 (선택)",
+    amount: "충전량",
+    amountUnit: "kWh",
+    amountHint: "충전량은 kWh당 충전 단가와 총 금액으로 자동 계산해요",
+    level: "충전 후 배터리 잔량",
+  },
+};
 
 const FUEL_LEVEL_PRESETS = [
   { label: "입력안함", value: 0 },
@@ -32,50 +57,64 @@ function toNumberString(raw: string): string {
 export function FuelLogForm({ initialData }: Props) {
   const navigate = useNavigate();
   const { show } = useToast();
+  const { addLog, updateLog, removeLog } = useFuelLogs();
+  const logs = useSelectedCarLogs();
+  const { cars, selectedCar } = useCars();
+  // 수정할 때는 기록이 속한 차, 새 기록은 선택한 차 기준으로 화면을 보여줘요.
+  const formCar = initialData
+    ? cars.find((car) => car.id === carIdOfLog(initialData, cars[0]?.id))
+    : selectedCar;
+  const isElectric = formCar?.fuelType === "electric";
+  const text = isElectric ? FORM_TEXT.electric : FORM_TEXT.fuel;
+  const { state } = useLocation();
+  const receipt: ReceiptAnalyzeResult | undefined = state?.receipt;
   const today = new Date().toISOString().split("T")[0];
 
-  const [date, setDate] = useState(initialData?.date ?? today);
-  const [location, setLocation] = useState(initialData?.location ?? "");
+  const [date, setDate] = useState(initialData?.date ?? receipt?.date ?? today);
+  const [location, setLocation] = useState(
+    initialData?.location ?? receipt?.location ?? "",
+  );
   const [odometer, setOdometer] = useState(
     initialData?.odometer?.toLocaleString() ?? "",
   );
-  const [pricePerLiter, setPricePerLiter] = useState(
-    initialData?.pricePerLiter?.toLocaleString() ?? "",
+  // 리터당 금액 또는 kWh당 충전 단가
+  const [unitPrice, setUnitPrice] = useState(
+    (isElectric
+      ? initialData?.pricePerkWh?.toLocaleString()
+      : (initialData?.pricePerLiter?.toLocaleString() ??
+        receipt?.pricePerLiter?.toLocaleString())) ?? "",
   );
   const [totalPrice, setTotalPrice] = useState(
-    initialData ? initialData.totalPrice.toLocaleString() : "",
+    initialData
+      ? initialData.totalPrice.toLocaleString()
+      : (receipt?.totalPrice?.toLocaleString() ?? ""),
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 
-  const [frequentTotalPrices, setFrequentTotalPrices] = useState<number[]>([]);
   const [showTotalPricePopover, setShowTotalPricePopover] = useState(false);
-  const [lastOdometer, setLastOdometer] = useState<number | null>(null);
   const totalPriceFieldRef = useRef<HTMLDivElement>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  useEffect(() => {
-    getFuelLogs().then((logs) => {
-      const freq = new Map<number, number>();
-      for (const log of logs) {
-        if (log.totalPrice > 0) {
-          freq.set(log.totalPrice, (freq.get(log.totalPrice) ?? 0) + 1);
-        }
+  const frequentTotalPrices = useMemo(() => {
+    const freq = new Map<number, number>();
+    for (const log of logs) {
+      if (log.totalPrice > 0) {
+        freq.set(log.totalPrice, (freq.get(log.totalPrice) ?? 0) + 1);
       }
-      const top = [...freq.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([price]) => price);
-      setFrequentTotalPrices(top);
+    }
+    return [...freq.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([price]) => price);
+  }, [logs]);
 
-      const recentWithOdometer = logs
-        .filter((log) => log.odometer != null && log.id !== initialData?.id)
-        .sort((a, b) => (a.date > b.date ? -1 : 1))[0];
-      if (recentWithOdometer?.odometer != null) {
-        setLastOdometer(recentWithOdometer.odometer);
-      }
-    });
-  }, []);
+  const lastOdometer = useMemo(() => {
+    const recentWithOdometer = logs
+      .filter((log) => log.odometer != null && log.id !== initialData?.id)
+      .sort((a, b) => (a.date > b.date ? -1 : 1))[0];
+    return recentWithOdometer?.odometer ?? null;
+  }, [logs, initialData?.id]);
 
   useEffect(() => {
     if (!showTotalPricePopover) return;
@@ -88,21 +127,23 @@ export function FuelLogForm({ initialData }: Props) {
     return () => document.removeEventListener("mousedown", handle);
   }, [showTotalPricePopover]);
 
-  const p = parseFloat(pricePerLiter.replace(/,/g, ""));
+  const p = parseFloat(unitPrice.replace(/,/g, ""));
   const t = parseFloat(totalPrice.replace(/,/g, ""));
-  const liters =
+  // 주유량(L) 또는 충전량(kWh)
+  const amount =
     p > 0 && t > 0 && !isNaN(p) && !isNaN(t) ? (t / p).toFixed(2) : "";
 
   const isValid = Boolean(date && totalPrice);
 
   const handleDelete = async () => {
     if (!initialData) return;
-    await removeFuelLog(initialData.id);
+    await removeLog(initialData.id);
     show({
-      text: "주유 기록이 삭제됐어요",
+      text: `${text.record}이 삭제됐어요`,
       duration: 2000,
     });
-    navigate(-1);
+    // 삭제된 기록의 편집/인사이트 화면으로 돌아가지 않도록 목록으로 보내요.
+    navigate("/", { replace: true });
   };
 
   const handleSave = async () => {
@@ -112,24 +153,40 @@ export function FuelLogForm({ initialData }: Props) {
       totalPrice: parseFloat(totalPrice.replace(/,/g, "")),
       location: location.trim() || undefined,
       odometer: odometer ? parseFloat(odometer.replace(/,/g, "")) : undefined,
-      pricePerLiter: pricePerLiter
-        ? parseFloat(pricePerLiter.replace(/,/g, ""))
-        : undefined,
       fuelLevel,
-      liters: liters ? parseFloat(liters) : undefined,
+      ...(isElectric
+        ? {
+            pricePerkWh: unitPrice ? p : undefined,
+            kWh: amount ? parseFloat(amount) : undefined,
+          }
+        : {
+            pricePerLiter: unitPrice ? p : undefined,
+            liters: amount ? parseFloat(amount) : undefined,
+          }),
+      // 수정할 때는 원래 차를 유지하고, 새 기록은 선택한 차에 넣어요.
+      carId: initialData ? initialData.carId : selectedCar?.id,
     };
     if (initialData) {
       console.log(`update: ${JSON.stringify(log)}`);
-      await updateFuelLog(log);
-    } else {
-      console.log(`add: ${JSON.stringify(log)}`);
-      await addFuelLog(log);
+      await updateLog(log);
+      show({
+        text: `${text.record}이 저장됐어요`,
+        duration: 2000,
+      });
+      navigate(-1);
+      return;
     }
-    show({
-      text: "주유 기록이 저장됐어요",
-      duration: 2000,
-    });
-    navigate(-1);
+
+    console.log(`add: ${JSON.stringify(log)}`);
+    await addLog(log);
+
+    // 새로 추가한 기록은 인사이트 화면에서 지난 기록과 비교해서 보여줘요.
+    // 인사이트는 아직 리터당 금액만 비교해서 전기차 기록은 목록으로 보내요.
+    if (log.pricePerLiter !== undefined) {
+      navigate(`/insight/${log.id}`, { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
   };
 
   return (
@@ -146,8 +203,31 @@ export function FuelLogForm({ initialData }: Props) {
         lowerGap={0}
         title={
           <Top.TitleParagraph size={28}>
-            {initialData ? "주유 기록 수정" : "주유 기록 추가"}
+            {initialData ? `${text.record} 수정` : `${text.record} 추가`}
           </Top.TitleParagraph>
+        }
+        subtitleBottom={
+          // 차를 등록하지 않으면 주유 기록으로 보여서, 전기차 오너에게 차 등록을 안내해요.
+          !initialData && cars.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => navigate("/cars")}
+              style={{
+                padding: 0,
+                border: "none",
+                background: "none",
+                fontSize: 14,
+                color: "#8B95A1",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              ⚡ 전기차 오너이신가요?{" "}
+              <span style={{ color: "#3182F6", fontWeight: 600 }}>
+                내 차 등록하기 ›
+              </span>
+            </button>
+          ) : undefined
         }
       />
       <div
@@ -172,52 +252,11 @@ export function FuelLogForm({ initialData }: Props) {
             required
           />
 
-          {/* 주유소 */}
-          <TextField.Clearable
-            variant="line"
-            label="주유소"
-            labelOption="sustain"
-            placeholder="주유소 이름 입력 (선택)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onClear={() => setLocation("")}
-            required={false}
-          />
-
-          {/* 누적 주행거리 */}
-          <TextField
-            variant="line"
-            label="누적 주행거리"
-            labelOption="sustain"
-            placeholder={
-              lastOdometer != null
-                ? `${lastOdometer.toLocaleString()} (선택)`
-                : "0 (선택)"
-            }
-            suffix="km"
-            value={odometer}
-            onChange={(e) => setOdometer(toNumberString(e.target.value))}
-            required={false}
-          />
-
-          {/* 리터당 금액 */}
-          <TextField.Clearable
-            variant="line"
-            label="리터당 금액"
-            labelOption="sustain"
-            placeholder="0 (선택)"
-            suffix="원/L"
-            value={pricePerLiter}
-            onChange={(e) => setPricePerLiter(toNumberString(e.target.value))}
-            required={false}
-            onClear={() => setPricePerLiter("")}
-          />
-
-          {/* 총 주유 금액 */}
+          {/* 총 금액 */}
           <div ref={totalPriceFieldRef} style={{ position: "relative" }}>
             <TextField.Clearable
               variant="line"
-              label="총 주유 금액"
+              label={text.totalPrice}
               labelOption="sustain"
               placeholder="0 (필수)"
               suffix="원"
@@ -277,24 +316,65 @@ export function FuelLogForm({ initialData }: Props) {
               </div>
             )}
           </div>
+
+          {/* 리터당 금액 / kWh당 충전 단가 */}
+          <TextField.Clearable
+            variant="line"
+            label={text.unitPrice}
+            labelOption="sustain"
+            placeholder="0 (선택)"
+            suffix={text.unitSuffix}
+            value={unitPrice}
+            onChange={(e) => setUnitPrice(toNumberString(e.target.value))}
+            required={false}
+            onClear={() => setUnitPrice("")}
+          />
+
+          {/* 주유소 / 충전소 */}
+          <TextField.Clearable
+            variant="line"
+            label={text.station}
+            labelOption="sustain"
+            placeholder={text.stationPlaceholder}
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            onClear={() => setLocation("")}
+            required={false}
+          />
+
+          {/* 누적 주행거리 */}
+          <TextField
+            variant="line"
+            label="누적 주행거리"
+            labelOption="sustain"
+            placeholder={
+              lastOdometer != null
+                ? `${lastOdometer.toLocaleString()} (선택)`
+                : "0 (선택)"
+            }
+            suffix="km"
+            value={odometer}
+            onChange={(e) => setOdometer(toNumberString(e.target.value))}
+            required={false}
+          />
         </div>
 
-        {/* 주유량 */}
+        {/* 주유량 / 충전량 */}
         <div style={{ padding: "0 24px" }}>
           <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-            주유량
+            {text.amount}
           </div>
           <div
             style={{
               fontSize: 20,
-              color: liters ? "#3182F6" : "#B0B8C1",
+              color: amount ? "#3182F6" : "#B0B8C1",
               fontWeight: 600,
             }}
           >
-            {liters ? `${liters} L` : "0.00 L"}
+            {`${amount || "0.00"} ${text.amountUnit}`}
           </div>
           <div style={{ fontSize: 12, color: "#8B95A1", marginTop: 4 }}>
-            리터당 금액과 총 금액으로 자동 계산해요
+            {text.amountHint}
           </div>
         </div>
 
@@ -308,9 +388,7 @@ export function FuelLogForm({ initialData }: Props) {
               marginBottom: 16,
             }}
           >
-            <span style={{ fontSize: 15, color: "#4E5968" }}>
-              주유 후 연료 잔량
-            </span>
+            <span style={{ fontSize: 15, color: "#4E5968" }}>{text.level}</span>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#3182F6" }}>
               {fuelLevel === 0
                 ? "입력안함"
@@ -408,11 +486,11 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
   return (
     <Button
       color="danger"
-      variant="fill"
+      variant="weak"
       style={{ width: "100%" }}
       onClick={onDelete}
     >
-      삭제하기
+      기록 삭제하기
     </Button>
   );
 }

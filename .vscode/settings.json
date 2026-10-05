@@ -1,4 +1,7 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "jest.runMode": "on-demand",
+  "jestrunner.enableTestExplorer": true,
+  "jest.enable": false
 }

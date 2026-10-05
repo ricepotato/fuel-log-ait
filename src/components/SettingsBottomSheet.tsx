@@ -1,53 +1,11 @@
-import { saveBase64Data } from "@apps-in-toss/web-framework";
-import { BottomSheet, ListRow } from "@toss/tds-mobile";
+import { Environment } from "@apps-in-toss/web-framework";
+import { BottomSheet, ConfirmDialog, ListRow } from "@toss/tds-mobile";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFuelLogs } from "../context/FuelLogContext";
 import { useToast } from "../hooks/useToast";
-import { getFuelLogs } from "../repository";
-
-const CSV_HEADERS = [
-  "ID",
-  "날짜",
-  "주유소",
-  "주유량(L)",
-  "리터당금액(원)",
-  "총금액(원)",
-  "누적주행거리(km)",
-  "연료잔량(%)",
-];
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      resolve(dataUrl.split(",")[1]);
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function handleSaveBase64Data({
-  fileName,
-  data,
-  mimeType,
-}: {
-  fileName: string;
-  data: string;
-  mimeType: string;
-}) {
-  try {
-    await saveBase64Data({
-      data,
-      fileName,
-      mimeType,
-    });
-    return true;
-  } catch (error) {
-    console.error("데이터 저장에 실패했어요:", error);
-    return false;
-  }
-}
+import { SAMPLE_FUEL_LOGS } from "../sandbox/sampleFuelLogs";
+import { useCars } from "../context/CarContext";
 
 export default function SettingsBottomSheet({
   open,
@@ -57,71 +15,125 @@ export default function SettingsBottomSheet({
   setOpen: (open: boolean) => void;
 }) {
   const { show } = useToast();
+  const { clearLogs, addLogs } = useFuelLogs();
+  const { selectedCar } = useCars();
+  const [openDataDeleteDialog, setOpenDataDeleteDialog] = useState(false);
   const navigate = useNavigate();
 
-  async function exportToCsv() {
-    const logs = await getFuelLogs();
-    const rows = logs
-      .sort((a, b) => (a.id > b.id ? -1 : 1))
-      .map((log) => [
-        log.id,
-        log.date,
-        log.location ?? "",
-        log.liters ?? "",
-        log.pricePerLiter ?? "",
-        log.totalPrice,
-        log.odometer ?? "",
-        log.fuelLevel ?? "",
-      ]);
+  async function confirmDeleteAllData() {
+    await clearLogs();
+    setOpenDataDeleteDialog(false);
+    setOpen(false);
+    show({ text: "로컬 데이터를 모두 삭제했어요", duration: 2000 });
+  }
 
-    const csv = [CSV_HEADERS, ...rows]
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-      )
-      .join("\n");
-
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-    const dateStr = new Date().toISOString();
-    const fileName = `주유기록_${dateStr}.csv`;
-    const isSuccess = await handleSaveBase64Data({
-      fileName,
-      data: await blobToBase64(blob),
-      mimeType: "text/csv",
+  async function insertSampleData() {
+    const baseId = Date.now();
+    await addLogs(
+      SAMPLE_FUEL_LOGS.map((log, index) => ({
+        ...log,
+        id: (baseId + index).toString(),
+        carId: selectedCar?.id,
+      })),
+    );
+    setOpen(false);
+    show({
+      text: `샘플 데이터 ${SAMPLE_FUEL_LOGS.length}개를 입력했어요`,
+      duration: 2000,
     });
-
-    if (isSuccess) {
-      setOpen(false);
-      show({
-        text: "주유기록 데이터를 내보냈어요",
-        duration: 2000,
-      });
-    } else {
-      show({
-        text: "데이터 내보내기에 실패했어요",
-        duration: 2000,
-      });
-    }
   }
 
   return (
-    <BottomSheet
+    <>
+      <BottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        header={<BottomSheet.Header>설정</BottomSheet.Header>}
+      >
+        <div style={{ paddingBottom: 24 }}>
+          <ListRow
+            contents={<ListRow.Texts type="1RowTypeA" top="내 차 관리" />}
+            onClick={() => {
+              setOpen(false);
+              navigate("/cars");
+            }}
+          />
+          <ListRow
+            contents={<ListRow.Texts type="1RowTypeA" top="통계 보기" />}
+            onClick={() => {
+              setOpen(false);
+              navigate("/statistics");
+            }}
+          />
+          <ListRow
+            contents={<ListRow.Texts type="1RowTypeA" top="데이터 내보내기" />}
+            onClick={() => {
+              setOpen(false);
+              navigate("/export");
+            }}
+          />
+          {Environment.environment === "sandbox" ? (
+            <>
+              <ListRow
+                contents={
+                  <ListRow.Texts
+                    type="1RowTypeA"
+                    top="[SANDBOX] 전체 데이터 삭제"
+                  />
+                }
+                onClick={() => setOpenDataDeleteDialog(true)}
+              />
+              <ListRow
+                contents={
+                  <ListRow.Texts
+                    type="1RowTypeA"
+                    top="[SANDBOX] 임의의 데이터 입력"
+                  />
+                }
+                onClick={insertSampleData}
+              />
+            </>
+          ) : null}
+        </div>
+      </BottomSheet>
+      <DeleteAllDataConfirmDialog
+        open={openDataDeleteDialog}
+        setOpen={setOpenDataDeleteDialog}
+        onConfirm={confirmDeleteAllData}
+      />
+    </>
+  );
+}
+
+function DeleteAllDataConfirmDialog({
+  open,
+  setOpen,
+  onConfirm,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <ConfirmDialog
       open={open}
+      title={<ConfirmDialog.Title>{"데이터 삭제하기"}</ConfirmDialog.Title>}
+      description={
+        <ConfirmDialog.Description>
+          {"현재 기기에 저장된 데이터를 모두 삭제할게요."}
+        </ConfirmDialog.Description>
+      }
+      cancelButton={
+        <ConfirmDialog.CancelButton onClick={() => setOpen(false)}>
+          아니오
+        </ConfirmDialog.CancelButton>
+      }
+      confirmButton={
+        <ConfirmDialog.ConfirmButton color="danger" onClick={onConfirm}>
+          예
+        </ConfirmDialog.ConfirmButton>
+      }
       onClose={() => setOpen(false)}
-      header={<BottomSheet.Header>데이터 관리</BottomSheet.Header>}
-    >
-      <div style={{ paddingBottom: 24 }}>
-        <ListRow
-          contents={<ListRow.Texts type="1RowTypeA" top="데이터 내보내기" />}
-          onClick={exportToCsv}
-        />
-        <ListRow
-          contents={<ListRow.Texts type="1RowTypeA" top="통계 보기" />}
-          onClick={() => {
-            setOpen(false);
-            navigate("/statistics");
-          }}
-        />
-      </div>
-    </BottomSheet>
+    />
   );
 }
