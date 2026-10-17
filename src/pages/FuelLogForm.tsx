@@ -36,7 +36,8 @@ const FORM_TEXT = {
     stationPlaceholder: "충전소 이름 입력 (선택)",
     amount: "충전량",
     amountUnit: "kWh",
-    amountHint: "충전량은 kWh당 충전 단가와 총 금액으로 자동 계산해요",
+    amountHint:
+      "충전량이나 kWh당 충전 단가 중 하나를 입력하면 총 금액으로 나머지를 자동 계산해요",
     level: "충전 후 배터리 잔량",
   },
 };
@@ -52,6 +53,28 @@ const FUEL_LEVEL_PRESETS = [
 function toNumberString(raw: string): string {
   const digits = raw.replace(/[^0-9]/g, "");
   return digits ? Number(digits).toLocaleString() : "";
+}
+
+// kWh당 충전 단가처럼 소수점(최대 2자리)을 허용하는 입력용이에요.
+function toDecimalString(raw: string): string {
+  const cleaned = raw.replace(/[^0-9.]/g, "");
+  const dot = cleaned.indexOf(".");
+  if (dot === -1) return toNumberString(cleaned);
+  const integer = toNumberString(cleaned.slice(0, dot)) || "0";
+  const fraction = cleaned
+    .slice(dot + 1)
+    .replace(/\./g, "")
+    .slice(0, 2);
+  return `${integer}.${fraction}`;
+}
+
+function parseNumber(value: string): number {
+  return parseFloat(value.replace(/,/g, ""));
+}
+
+// 자동 계산한 값을 입력칸에 넣을 때 소수점 2자리까지 보여줘요.
+function toDecimalDisplay(value: number): string {
+  return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 export function FuelLogForm({ initialData }: Props) {
@@ -82,12 +105,25 @@ export function FuelLogForm({ initialData }: Props) {
     (isElectric
       ? initialData?.pricePerkWh?.toLocaleString()
       : (initialData?.pricePerLiter?.toLocaleString() ??
-        receipt?.pricePerLiter?.toLocaleString())) ?? "",
+          receipt?.pricePerLiter?.toLocaleString()) ||
+        receipt?.pricePerkWh?.toLocaleString()) ?? "",
   );
   const [totalPrice, setTotalPrice] = useState(
     initialData
       ? initialData.totalPrice.toLocaleString()
       : (receipt?.totalPrice?.toLocaleString() ?? ""),
+  );
+  // 전기차는 충전량(kWh)도 직접 입력받아요.
+  const [kWhInput, setKWhInput] = useState(
+    initialData?.kWh != null
+      ? toDecimalDisplay(initialData.kWh)
+      : receipt?.kWh
+        ? toDecimalDisplay(receipt?.kWh)
+        : "",
+  );
+  // 전기차에서 마지막으로 직접 입력한 칸. 총 금액이 바뀌면 다른 칸을 다시 계산해요.
+  const [electricSource, setElectricSource] = useState<"unitPrice" | "kWh">(
+    "unitPrice",
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 
@@ -127,11 +163,37 @@ export function FuelLogForm({ initialData }: Props) {
     return () => document.removeEventListener("mousedown", handle);
   }, [showTotalPricePopover]);
 
-  const p = parseFloat(unitPrice.replace(/,/g, ""));
-  const t = parseFloat(totalPrice.replace(/,/g, ""));
-  // 주유량(L) 또는 충전량(kWh)
+  const p = parseNumber(unitPrice);
+  const t = parseNumber(totalPrice);
+  // 주유량(L). 전기차는 충전량을 kWhInput 으로 따로 관리해요.
   const amount =
     p > 0 && t > 0 && !isNaN(p) && !isNaN(t) ? (t / p).toFixed(2) : "";
+
+  /**
+   * 전기차는 총 금액과 충전량 / kWh당 충전 단가 중 두 값이 있으면 나머지를 계산해요.
+   * source 는 사용자가 직접 입력한 칸이고, 그 반대 칸을 채워요.
+   */
+  const recalcElectric = (
+    source: "unitPrice" | "kWh",
+    total: string,
+    nextUnitPrice: string,
+    nextKWh: string,
+  ) => {
+    const totalValue = parseNumber(total);
+    if (!(totalValue > 0)) return;
+    if (source === "unitPrice") {
+      const price = parseNumber(nextUnitPrice);
+      if (price > 0) setKWhInput(toDecimalDisplay(totalValue / price));
+    } else {
+      const kWh = parseNumber(nextKWh);
+      if (kWh > 0) setUnitPrice(toDecimalDisplay(totalValue / kWh));
+    }
+  };
+
+  const handleTotalPriceChange = (value: string) => {
+    setTotalPrice(value);
+    if (isElectric) recalcElectric(electricSource, value, unitPrice, kWhInput);
+  };
 
   const isValid = Boolean(date && totalPrice);
 
@@ -157,7 +219,7 @@ export function FuelLogForm({ initialData }: Props) {
       ...(isElectric
         ? {
             pricePerkWh: unitPrice ? p : undefined,
-            kWh: amount ? parseFloat(amount) : undefined,
+            kWh: kWhInput ? parseNumber(kWhInput) : undefined,
           }
         : {
             pricePerLiter: unitPrice ? p : undefined,
@@ -262,7 +324,7 @@ export function FuelLogForm({ initialData }: Props) {
               suffix="원"
               value={totalPrice}
               onChange={(e) => {
-                setTotalPrice(toNumberString(e.target.value));
+                handleTotalPriceChange(toNumberString(e.target.value));
                 setShowTotalPricePopover(false);
               }}
               required
@@ -294,7 +356,7 @@ export function FuelLogForm({ initialData }: Props) {
                     key={price}
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      setTotalPrice(price.toLocaleString());
+                      handleTotalPriceChange(price.toLocaleString());
                       setShowTotalPricePopover(false);
                     }}
                     style={{
@@ -317,6 +379,26 @@ export function FuelLogForm({ initialData }: Props) {
             )}
           </div>
 
+          {/* 충전량 (전기차만 직접 입력) */}
+          {isElectric && (
+            <TextField.Clearable
+              variant="line"
+              label={text.amount}
+              labelOption="sustain"
+              placeholder="0 (선택)"
+              suffix={text.amountUnit}
+              value={kWhInput}
+              onChange={(e) => {
+                const next = toDecimalString(e.target.value);
+                setKWhInput(next);
+                setElectricSource("kWh");
+                recalcElectric("kWh", totalPrice, unitPrice, next);
+              }}
+              required={false}
+              onClear={() => setKWhInput("")}
+            />
+          )}
+
           {/* 리터당 금액 / kWh당 충전 단가 */}
           <TextField.Clearable
             variant="line"
@@ -325,7 +407,16 @@ export function FuelLogForm({ initialData }: Props) {
             placeholder="0 (선택)"
             suffix={text.unitSuffix}
             value={unitPrice}
-            onChange={(e) => setUnitPrice(toNumberString(e.target.value))}
+            onChange={(e) => {
+              if (!isElectric) {
+                setUnitPrice(toNumberString(e.target.value));
+                return;
+              }
+              const next = toDecimalString(e.target.value);
+              setUnitPrice(next);
+              setElectricSource("unitPrice");
+              recalcElectric("unitPrice", totalPrice, next, kWhInput);
+            }}
             required={false}
             onClear={() => setUnitPrice("")}
           />
@@ -359,24 +450,30 @@ export function FuelLogForm({ initialData }: Props) {
           />
         </div>
 
-        {/* 주유량 / 충전량 */}
-        <div style={{ padding: "0 24px" }}>
-          <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
-            {text.amount}
-          </div>
-          <div
-            style={{
-              fontSize: 20,
-              color: amount ? "#3182F6" : "#B0B8C1",
-              fontWeight: 600,
-            }}
-          >
-            {`${amount || "0.00"} ${text.amountUnit}`}
-          </div>
-          <div style={{ fontSize: 12, color: "#8B95A1", marginTop: 4 }}>
+        {/* 주유량 (전기차 충전량은 위에서 직접 입력해요) */}
+        {isElectric ? (
+          <div style={{ padding: "0 24px", fontSize: 12, color: "#8B95A1" }}>
             {text.amountHint}
           </div>
-        </div>
+        ) : (
+          <div style={{ padding: "0 24px" }}>
+            <div style={{ fontSize: 13, color: "#8B95A1", marginBottom: 4 }}>
+              {text.amount}
+            </div>
+            <div
+              style={{
+                fontSize: 20,
+                color: amount ? "#3182F6" : "#B0B8C1",
+                fontWeight: 600,
+              }}
+            >
+              {`${amount || "0.00"} ${text.amountUnit}`}
+            </div>
+            <div style={{ fontSize: 12, color: "#8B95A1", marginTop: 4 }}>
+              {text.amountHint}
+            </div>
+          </div>
+        )}
 
         {/* 연료 잔량 */}
         <div style={{ marginTop: "20px", padding: "0 24px" }}>
