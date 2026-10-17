@@ -14,7 +14,7 @@ import { useToast } from "../hooks/useToast";
 import { FUEL_TYPE_LABELS, type Car, type FuelType } from "../types/car";
 import type { FuelLog } from "../types/fuelLog";
 
-const FUEL_TYPES: FuelType[] = ["gasoline", "diesel", "electric"];
+const FUEL_TYPES: FuelType[] = ["gasoline", "diesel", "electric", "lpg"];
 
 export function CarFormPage({ initialData }: { initialData?: Car }) {
   const navigate = useNavigate();

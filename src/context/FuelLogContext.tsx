@@ -16,7 +16,7 @@ import {
   removeFuelLogsOfCar,
   removeFuelLog,
   updateFuelLog,
-} from "../repository";
+} from "../storage";
 
 interface FuelLogState {
   logs: FuelLog[];
