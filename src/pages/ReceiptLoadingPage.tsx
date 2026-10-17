@@ -39,7 +39,7 @@ export function ReceiptLoadingPage() {
         );
         console.log(result);
 
-        if (result.totalPrice === 0) {
+        if (!cancelled && result.totalPrice === 0) {
           show({ text: "영수증 분석에 실패했어요", duration: 2000 });
           navigate("/add", { replace: true });
           return;
