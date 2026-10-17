@@ -103,10 +103,10 @@ export function FuelLogForm({ initialData }: Props) {
   // 리터당 금액 또는 kWh당 충전 단가
   const [unitPrice, setUnitPrice] = useState(
     (isElectric
-      ? initialData?.pricePerkWh?.toLocaleString()
-      : (initialData?.pricePerLiter?.toLocaleString() ??
-          receipt?.pricePerLiter?.toLocaleString()) ||
-        receipt?.pricePerkWh?.toLocaleString()) ?? "",
+      ? (initialData?.pricePerkWh ?? receipt?.pricePerkWh)?.toLocaleString()
+      : (
+          initialData?.pricePerLiter ?? receipt?.pricePerLiter
+        )?.toLocaleString()) ?? "",
   );
   const [totalPrice, setTotalPrice] = useState(
     initialData

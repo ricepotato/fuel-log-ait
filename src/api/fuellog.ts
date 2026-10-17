@@ -34,7 +34,7 @@ export async function analyzeReceipt(
   // S3 presigned URL은 image/jpeg로 서명되므로 업로드 타입을 맞춤
 
   console.log(
-    `[fetch] analyzeReceipt: userId=${userId}, contentType=${contentType}, fuelType=${fuelType}`,
+    `[fetch] analyzeReceipt: contentType=${contentType}, fuelType=${fuelType}`,
   );
   const uploadContentType = "image/jpeg";
   const blob = base64ToBlob(base64, uploadContentType);
