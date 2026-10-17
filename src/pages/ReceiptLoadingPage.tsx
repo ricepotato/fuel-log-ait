@@ -38,9 +38,17 @@ export function ReceiptLoadingPage() {
           selectedCar?.fuelType,
         );
         console.log(result);
+
+        if (result.totalPrice === 0) {
+          show({ text: "영수증 분석에 실패했어요", duration: 2000 });
+          navigate("/add", { replace: true });
+          return;
+        }
+
         if (!cancelled) {
           show({ text: "영수증을 인식했어요", duration: 2000 });
           navigate("/add", { replace: true, state: { receipt: result } });
+          return;
         }
       } catch (e) {
         console.error(`Error: ${e}`);

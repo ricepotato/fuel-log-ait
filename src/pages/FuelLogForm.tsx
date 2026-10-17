@@ -92,6 +92,11 @@ export function FuelLogForm({ initialData }: Props) {
   const { state } = useLocation();
   const receipt: ReceiptAnalyzeResult | undefined = state?.receipt;
   const today = new Date().toISOString().split("T")[0];
+  // 전기차 영수증에 총 금액과 충전량이 있으면 kWh당 충전 단가는 두 값으로 계산해요.
+  const receiptPricePerkWh =
+    isElectric && !initialData && receipt?.totalPrice && receipt?.kWh
+      ? receipt.totalPrice / receipt.kWh
+      : undefined;
 
   const [date, setDate] = useState(initialData?.date ?? receipt?.date ?? today);
   const [location, setLocation] = useState(
@@ -103,7 +108,9 @@ export function FuelLogForm({ initialData }: Props) {
   // 리터당 금액 또는 kWh당 충전 단가
   const [unitPrice, setUnitPrice] = useState(
     (isElectric
-      ? (initialData?.pricePerkWh ?? receipt?.pricePerkWh)?.toLocaleString()
+      ? receiptPricePerkWh !== undefined
+        ? toDecimalDisplay(receiptPricePerkWh)
+        : (initialData?.pricePerkWh ?? receipt?.pricePerkWh)?.toLocaleString()
       : (
           initialData?.pricePerLiter ?? receipt?.pricePerLiter
         )?.toLocaleString()) ?? "",
@@ -123,7 +130,7 @@ export function FuelLogForm({ initialData }: Props) {
   );
   // 전기차에서 마지막으로 직접 입력한 칸. 총 금액이 바뀌면 다른 칸을 다시 계산해요.
   const [electricSource, setElectricSource] = useState<"unitPrice" | "kWh">(
-    "unitPrice",
+    receiptPricePerkWh !== undefined ? "kWh" : "unitPrice",
   );
   const [fuelLevel, setFuelLevel] = useState(initialData?.fuelLevel ?? 0);
 

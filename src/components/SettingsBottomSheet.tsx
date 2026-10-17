@@ -92,6 +92,50 @@ export default function SettingsBottomSheet({
                 }
                 onClick={insertSampleData}
               />
+              <ListRow
+                contents={
+                  <ListRow.Texts
+                    type="1RowTypeA"
+                    top="[SANDBOX] 임의의 전기차 영수증 데이터 입력"
+                  />
+                }
+                onClick={() => {
+                  navigate("/add", {
+                    replace: true,
+                    state: {
+                      receipt: {
+                        date: "2023-02-26",
+                        location: "서울대학교",
+                        //kWh: 19.47,
+                        pricePerkWh: 170,
+                        totalPrice: 3309,
+                      },
+                    },
+                  });
+                }}
+              />
+              <ListRow
+                contents={
+                  <ListRow.Texts
+                    type="1RowTypeA"
+                    top="[SANDBOX] 임의의 전기차 실패 영수증 데이터 입력"
+                  />
+                }
+                onClick={() => {
+                  navigate("/add", {
+                    replace: true,
+                    state: {
+                      receipt: {
+                        date: null,
+                        location: null,
+                        kWh: null,
+                        pricePerkWh: null,
+                        totalPrice: 0,
+                      },
+                    },
+                  });
+                }}
+              />
             </>
           ) : null}
         </div>
