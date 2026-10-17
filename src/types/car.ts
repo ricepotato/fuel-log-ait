@@ -1,8 +1,9 @@
-export type FuelType = "gasoline" | "diesel" | "electric";
+export type FuelType = "gasoline" | "diesel" | "lpg" | "electric";
 
 export const FUEL_TYPE_LABELS: Record<FuelType, string> = {
   gasoline: "휘발유",
   diesel: "경유",
+  lpg: "LPG",
   electric: "전기",
 };
 
