@@ -1,12 +1,16 @@
+import { FuelType } from "../types/car";
+
 const API_URL =
   "https://91p5i7lvpj.execute-api.ap-northeast-2.amazonaws.com/Prod";
 
 export interface ReceiptAnalyzeResult {
   date: string;
   location: string;
-  liters: number;
-  pricePerLiter: number;
+  liters?: number;
+  pricePerLiter?: number;
   totalPrice: number;
+  kWh?: number;
+  pricePerkWh?: number;
 }
 
 function base64ToBlob(
@@ -25,8 +29,13 @@ export async function analyzeReceipt(
   userId: string,
   base64: string,
   contentType: string = "image/jpeg",
+  fuelType?: FuelType,
 ): Promise<ReceiptAnalyzeResult> {
   // S3 presigned URL은 image/jpeg로 서명되므로 업로드 타입을 맞춤
+
+  console.log(
+    `[fetch] analyzeReceipt: contentType=${contentType}, fuelType=${fuelType}`,
+  );
   const uploadContentType = "image/jpeg";
   const blob = base64ToBlob(base64, uploadContentType);
 
@@ -52,7 +61,7 @@ export async function analyzeReceipt(
   const analyzeResp = await fetch(`${API_URL}/receipt/analyze`, {
     method: "POST",
     headers: { "x-user-id": userId, "Content-Type": "application/json" },
-    body: JSON.stringify({ key }),
+    body: JSON.stringify({ key, fuel_type: fuelType }),
   });
   if (!analyzeResp.ok) {
     throw new Error(`analyze 요청 실패: ${analyzeResp.status}`);

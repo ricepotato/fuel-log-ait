@@ -2,6 +2,7 @@ import { User } from "@apps-in-toss/web-framework";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { analyzeReceipt } from "../api/fuellog";
+import { useCars } from "../context/CarContext";
 import { useToast } from "../hooks/useToast";
 
 interface LocationState {
@@ -14,12 +15,15 @@ export function ReceiptLoadingPage() {
   const { state } = useLocation();
   const { base64, contentType } = (state ?? {}) as LocationState;
   const { show } = useToast();
+  const { loaded, selectedCar } = useCars();
 
   useEffect(() => {
     if (!base64) {
       navigate("/", { replace: true });
       return;
     }
+    // 선택한 차의 연료 종류를 함께 보내야 해서 차 정보 로드를 기다려요.
+    if (!loaded) return;
 
     let cancelled = false;
 
@@ -31,10 +35,20 @@ export function ReceiptLoadingPage() {
           anonymousKey.hash,
           base64,
           contentType,
+          selectedCar?.fuelType,
         );
+        console.log(result);
+
+        if (!cancelled && result.totalPrice === 0) {
+          show({ text: "영수증 분석에 실패했어요", duration: 2000 });
+          navigate("/add", { replace: true });
+          return;
+        }
+
         if (!cancelled) {
           show({ text: "영수증을 인식했어요", duration: 2000 });
           navigate("/add", { replace: true, state: { receipt: result } });
+          return;
         }
       } catch (e) {
         console.error(`Error: ${e}`);
@@ -48,7 +62,7 @@ export function ReceiptLoadingPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loaded]);
 
   return (
     <div
