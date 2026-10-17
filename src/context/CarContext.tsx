@@ -13,7 +13,7 @@ import {
   getSelectedCarId,
   saveCars,
   saveSelectedCarId,
-} from "../carRepository";
+} from "../repository";
 import type { Car } from "../types/car";
 import type { FuelLog } from "../types/fuelLog";
 import { useFuelLogs } from "./FuelLogContext";

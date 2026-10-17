@@ -1,18 +1,21 @@
 import { Storage } from "@apps-in-toss/web-framework";
+import type { Car } from "./types/car";
 import { FuelLog } from "./types/fuelLog";
 
-const KEY = "fuel-logs";
+const FUEL_LOGS_KEY = "fuel-logs";
+const CARS_KEY = "cars";
+const SELECTED_CAR_KEY = "selected-car-id";
 
 /**
- * 주유 기록은 이 기기 Storage 에만 저장해요. 서버 연동은 재설계 중이라 없어요.
+ * 주유 기록과 차 정보는 이 기기 Storage 에만 저장해요. 서버 연동은 재설계 중이라 없어요.
  */
 
 async function writeFuelLogs(fuelLogs: FuelLog[]): Promise<void> {
-  await Storage.setItem(KEY, JSON.stringify(fuelLogs));
+  await Storage.setItem(FUEL_LOGS_KEY, JSON.stringify(fuelLogs));
 }
 
 export async function getFuelLogs(): Promise<FuelLog[]> {
-  const raw = await Storage.getItem(KEY);
+  const raw = await Storage.getItem(FUEL_LOGS_KEY);
   if (!raw) return [];
   return JSON.parse(raw) as FuelLog[];
 }
@@ -76,5 +79,36 @@ export async function removeFuelLog(id: string): Promise<void> {
 
 /** 이 기기의 기록을 모두 지워요(sandbox 전용 테스트 기능). */
 export async function clearFuelLogs(): Promise<void> {
-  await Storage.removeItem(KEY);
+  await Storage.removeItem(FUEL_LOGS_KEY);
+}
+
+/* 차 목록과 선택한 차 */
+
+export async function getCars(): Promise<Car[]> {
+  const raw = await Storage.getItem(CARS_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw) as Car[];
+}
+
+export async function saveCars(cars: Car[]): Promise<void> {
+  await Storage.setItem(CARS_KEY, JSON.stringify(cars));
+}
+
+export async function getSelectedCarId(): Promise<string | null> {
+  return (await Storage.getItem(SELECTED_CAR_KEY)) ?? null;
+}
+
+export async function saveSelectedCarId(id: string): Promise<void> {
+  await Storage.setItem(SELECTED_CAR_KEY, id);
+}
+
+export function createCarId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  // randomUUID 가 없는 오래된 웹뷰용 RFC 4122 v4 대체 구현
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
